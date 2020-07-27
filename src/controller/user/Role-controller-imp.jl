@@ -1,6 +1,9 @@
+using ICUDYN.Controller.User
+
 function Controller.updateVectorProps!(object::Role,
                                        dbconn::LibPQ.Connection
                                       ;editor::Union{AppUser, Missing} = missing)
+
       PostgresqlDAO.Controller.
         update_vector_property!(object, # updated_object
                                :roleRoleAssos_as_handler, # updated_property
@@ -13,7 +16,7 @@ function Controller.updateVectorProps!(object::Role,
                                 editor = editor)
 end
 
-function getComposedRolesAccessibleToUser(
+function User.getComposedRolesAccessibleToUser(
         appuser::AppUser
        ;appuserType::Union{Missing,AppUserType.APPUSER_TYPE} = missing)
 
@@ -24,10 +27,10 @@ function getComposedRolesAccessibleToUser(
             -- 'DISTINCT' is needed because the user can have several roles
             --   handling the same role
             DISTINCT handled_role.*
-            FROM utilisateur.role handler_role
-            INNER JOIN utilisateur.role_role_asso rrasso
+            FROM usersch.role handler_role
+            INNER JOIN usersch.role_role_asso rrasso
               ON rrasso.handler_role_id = handler_role.id
-            INNER JOIN utilisateur.role handled_role
+            INNER JOIN usersch.role handled_role
               ON rrasso.handled_role_id = handled_role.id
             WHERE
                   handled_role.composed = 't'
@@ -68,9 +71,9 @@ function getComposedRolesAccessibleToUser(
 end
 
 
-function getComposedRolesForListing(appuser::AppUser)
+function User.getComposedRolesForListing(appuser::AppUser)
 
-    if (!hasRole(appuser,RoleCodeName.can_search_roles))
+    if (!hasRole(appuser, RoleCodeName.can_search_roles))
             error("unauthorized_access")
     end
 

@@ -1,10 +1,11 @@
 data_type = Role
 PostgresqlDAO.getdao(x::Role) = return(RoleDAO)
-gettablename() = "utilisateur.role"
+gettablename() = "usersch.role"
 # The format of the mapping is: `property name = "column name"`
 const columns_selection_and_mapping = Dict(:id => "id",
                                            :codeName => "code_name",
-                                           :name => "name",
+                                           :name_en => "name_en",
+                                           :name_fr => "name_fr",
                                            :composed => "composed",
                                            :restrictedToAppUserType =>
                                                 "restricted_to_appuser_type",

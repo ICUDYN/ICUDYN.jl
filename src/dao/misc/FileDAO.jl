@@ -9,16 +9,14 @@ const columns_selection_and_mapping = Dict(:id => "id",
                                            :creator => "creator_id",
                                            :lastEditor => "last_editor_id",
                                            :creationTime => "creation_time",
-                                           :updateTime => "update_time",
-                                           :causeAnomalie => "cause_anomalie_id"
+                                           :updateTime => "update_time"
                                            )
 
 const id_property = :id
 
 # A dictionnary of mapping between fields symbols and overriding types
 #   Left hanside is the field symbol ; right hand side is the type override
-const types_override = Dict(:causeAnomalie => Model.CauseAnomalie,
-                            :creator => Model.AppUser,
+const types_override = Dict(:creator => Model.AppUser,
                             :lastEditor => Model.AppUser)
 const track_changes = true
 const creator_property = :creator

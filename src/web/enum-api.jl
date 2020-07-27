@@ -39,7 +39,7 @@ new_route = route("/enum/posible-values/:enumType", req -> begin
         #         (eg. 'export CURRENCY') and imported in using.jl
         #         (eg. 'using Merchmgt.Enums.Currency')
         enumType::DataType = @eval $(Symbol(req[:params][:enumType]))
-        possibleValues = OQSUtil.listEnums(enumType
+        possibleValues = ICUDYNUtil.listEnums(enumType
                                                 ;appuser = appuser)
 
         200 # status_code

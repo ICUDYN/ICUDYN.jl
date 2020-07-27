@@ -1,6 +1,6 @@
 data_type = AppUserRoleAsso
 PostgresqlDAO.getdao(x::AppUserRoleAsso) = return(AppUserRoleAssoDAO)
-gettablename() = "utilisateur.appuser_role_asso"
+gettablename() = "usersch.appuser_role_asso"
 # The format of the mapping is: `property name = "column name"`
 const columns_selection_and_mapping = Dict(:id => "id",
                                            :appuser => "appuser_id",

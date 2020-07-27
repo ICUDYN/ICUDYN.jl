@@ -15,6 +15,14 @@ git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.10"
 
+[[BlindBake]]
+deps = ["Dates", "Distributed"]
+git-tree-sha1 = "53ba9f7af29c000f5c2a0cd64dad708e735b521f"
+repo-rev = "master"
+repo-url = "https://github.com/tencnivel/BlindBake.jl"
+uuid = "f553a979-f94b-4d5f-83cd-60d30b68875d"
+version = "0.1.3"
+
 [[CEnum]]
 git-tree-sha1 = "215a9aa4a1f23fbd05b92769fdd62559488d70e9"
 uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
@@ -31,12 +39,6 @@ deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "Unicod
 git-tree-sha1 = "a6c17353ee38ddab30e73dcfaa1107752de724ec"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 version = "0.8.1"
-
-[[CodeTracking]]
-deps = ["InteractiveUtils", "UUIDs"]
-git-tree-sha1 = "cab4da992adc0a64f63fa30d2db2fd8bec40cab4"
-uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
-version = "0.5.11"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -130,11 +132,23 @@ git-tree-sha1 = "6187bb2d5fcbb2007c39e7ac53308b0d371124bd"
 uuid = "9fb69e20-1954-56bb-a84f-559cc56a8ff7"
 version = "0.2.2"
 
+[[IOLogging]]
+deps = ["Dates", "Logging", "Test"]
+git-tree-sha1 = "8891fbf4a644d2d4644c5e9ef594364bc4b1d247"
+uuid = "9ee9e592-2d2d-57f4-9c4b-95048a1bc2c4"
+version = "0.2.0"
+
 [[Infinity]]
 deps = ["Dates", "Random", "Requires"]
 git-tree-sha1 = "b03a4e0ef454c3a8a309dfe0fbd8bd66ca33bd0c"
 uuid = "a303e19e-6eb4-11e9-3b09-cd9505f79100"
 version = "0.2.1"
+
+[[InfoZIP]]
+deps = ["Test"]
+git-tree-sha1 = "087ad2b31892c028b7a56e0a502b13d91faa4b96"
+uuid = "f4508453-b816-52ab-a864-26fc7f6211fc"
+version = "0.2.0"
 
 [[IniFile]]
 deps = ["Test"]
@@ -186,12 +200,6 @@ git-tree-sha1 = "8507e585dcf6e47c3a4342cb3a893dad2355b4e8"
 uuid = "d850fbd6-035d-5a70-a269-1ca2e636ac6c"
 version = "0.1.2"
 
-[[JuliaInterpreter]]
-deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
-git-tree-sha1 = "79e4496b79e8af45198f8c291f26d4514d6b06d6"
-uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
-version = "0.7.24"
-
 [[LayerDicts]]
 git-tree-sha1 = "6087ad3521d6278ebe5c27ae55e7bbb15ca312cb"
 uuid = "6f188dcb-512c-564b-bc01-e0f76e72f166"
@@ -235,11 +243,11 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
-[[LoweredCodeUtils]]
-deps = ["JuliaInterpreter"]
-git-tree-sha1 = "1b632dc108106101a9909db7be8f8b32ed8d02f7"
-uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
-version = "0.4.6"
+[[MD5]]
+deps = ["Random", "SHA"]
+git-tree-sha1 = "eeffe42284464c35a08026d23aa948421acf8923"
+uuid = "6ac74813-4b46-53a4-afec-0b5dc9d7885c"
+version = "0.2.1"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -368,12 +376,6 @@ deps = ["UUIDs"]
 git-tree-sha1 = "d37400976e98018ee840e0ca4f9d20baa231dc6b"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.0.1"
-
-[[Revise]]
-deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "UUIDs", "Unicode"]
-git-tree-sha1 = "0992d4643e27b2deb9f2e4ec7a56b7033813a027"
-uuid = "295af30f-e4ad-537b-8983-00126c2a3abe"
-version = "2.7.3"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"

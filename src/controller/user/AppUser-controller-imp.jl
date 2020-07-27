@@ -1,4 +1,6 @@
-function setJWT!(appuser::AppUser)
+using ICUDYN.Controller.User
+
+function User.setJWT!(appuser::AppUser)
 
     # payload = Dict("roles" => ["role1","role2"],
     #                "email" => "vincent.laugier@tekliko.com")
@@ -21,7 +23,7 @@ function setJWT!(appuser::AppUser)
 
 end
 
-function enrichWithMD5Password!(appuser::AppUser)
+function User.enrichWithMD5Password!(appuser::AppUser)
 
     if !ismissing(appuser.password) && length(appuser.password) != 32
         appuser.password = bytes2hex(md5(appuser.password))
@@ -29,32 +31,32 @@ function enrichWithMD5Password!(appuser::AppUser)
 end
 
 function Controller.prePersist!(appuser::AppUser)
-    enrichWithMD5Password!(appuser)
+    User.enrichWithMD5Password!(appuser)
 end
 
 function Controller.preUpdate!(appuser::AppUser)
-    enrichWithMD5Password!(appuser)
+    User.enrichWithMD5Password!(appuser)
 end
 
 
 function Controller.updateVectorProps!(object::AppUser,
                                        dbconn::LibPQ.Connection
                                       ;editor::Union{AppUser, Missing} = missing)
-    updateAppUserRoleAssos!(object,dbconn
+    User.updateAppUserRoleAssos!(object,dbconn
                            ;editor = editor)
 
     # On recharge les roles pour casser la réfeéence cyclique :
     #   AppUserRoleAsso - AppUser - AppUserRoleAsso - etc...
     #   qui empêche la serialisation JSON
-    enrichUserWithRoles!(object,dbconn)
+    User.enrichUserWithRoles!(object,dbconn)
 end
 
 function Controller.enrichWithVectorProps!(object::AppUser,
                                 dbconn::LibPQ.Connection)
-    enrichUserWithRoles!(object,dbconn)
+    User.enrichUserWithRoles!(object,dbconn)
 end
 
-function updateAppUserRoleAssos!(object::AppUser,
+function User.updateAppUserRoleAssos!(object::AppUser,
                                  dbconn::LibPQ.Connection,
                                 ;editor::Union{AppUser, Missing} = missing)
 
@@ -65,7 +67,7 @@ function updateAppUserRoleAssos!(object::AppUser,
 
 end
 
-function enrichUserWithRoles!(appuser::AppUser,
+function User.enrichUserWithRoles!(appuser::AppUser,
                               dbconn::Union{Missing, LibPQ.Connection} = missing)
 
     # Open a db connection if none is given in argument
@@ -138,7 +140,7 @@ function enrichUserWithRoles!(appuser::AppUser,
 end
 
 
-function authenticate(login::String, password::String)
+function User.authenticate(login::String, password::String)
     filterUser = AppUser(;login = login,
                          password = bytes2hex(md5(password)))
     appuser = Controller.retrieveOneEntity(filterUser,
@@ -149,13 +151,13 @@ function authenticate(login::String, password::String)
         return(missing)
     end
 
-    setJWT!(appuser)
+    User.setJWT!(appuser)
 
     return(appuser)
 end
 
 
-function getAllUsers(appuser::AppUser)
+function User.getAllUsers(appuser::AppUser)
 
     dbconn = openDBConnAndBeginTransaction()
 
@@ -177,12 +179,12 @@ function getAllUsers(appuser::AppUser)
             appuser.appuser_type AS \"appuser_type\",
             STRING_AGG(DISTINCT role.code_name, ', ')  AS \"appuser_roles\",
             STRING_AGG(DISTINCT role.name, ', ')  AS \"appuser_roles_names\"
-            FROM utilisateur.appuser appuser "
+            FROM usersch.appuser appuser "
 
         queryString *= "
-                INNER JOIN utilisateur.appuser_role_asso role_asso
+                INNER JOIN usersch.appuser_role_asso role_asso
                     ON appuser.id = role_asso.appuser_id
-                INNER JOIN utilisateur.role role
+                INNER JOIN usersch.role role
                     ON role.id = role_asso.role_id"
 
         # Les utilisateurs 'exploitant' ne peuvent voir que les utilisateurs 'exploitant'

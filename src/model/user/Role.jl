@@ -2,7 +2,8 @@ mutable struct Role <: IRole
 
     id::Union{Missing,String}
     codeName::Union{Missing, RoleCodeName.ROLE_CODE_NAME}
-    name::Union{Missing,String}
+    name_en::Union{Missing,String}
+    name_fr::Union{Missing,String}
     composed::Union{Bool,Missing}
 
     restrictedToAppUserType::Union{Missing,AppUserType.APPUSER_TYPE}
@@ -23,7 +24,8 @@ mutable struct Role <: IRole
     Role(args::NamedTuple) = Role(;args...)
     Role(;id = missing,
           codeName = missing,
-          name = missing,
+          name_en = missing,
+          name_fr = missing,
           composed = missing,
           restrictedToAppUserType = missing,
           roleRoleAssos_as_handler = missing,
@@ -33,11 +35,12 @@ mutable struct Role <: IRole
           creationTime = missing,
           updateTime = missing) = (
                 x = new(missing,missing,missing,missing,
-                        missing,missing,missing,
+                        missing,missing,missing,missing,
                         missing,missing,missing,missing);
                 x.id = id;
                 x.codeName = codeName;
-                x.name = name;
+                x.name_en = name_en;
+                x.name_fr = name_fr;
                 x.composed = composed;
                 x.restrictedToAppUserType = restrictedToAppUserType;
 

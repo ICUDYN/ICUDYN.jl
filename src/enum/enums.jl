@@ -1,8 +1,8 @@
 module AppUserType
     export APPUSER_TYPE
     @enum APPUSER_TYPE begin
-         collaborateur_direction_transport = 1
-         collaborateur_exploitant = 2
+         healthcare_professional = 1
+         other = 2
     end
 end
 
@@ -12,17 +12,26 @@ module RoleCodeName
 
         # Equivalents to AppUserTypes (for convenience, so that we can use
         # function 'hasRole()')
-        collaborateur_direction_transport = 1001
-        collaborateur_exploitant = 1002
+        healthcare_professional = 1001
+        other = 1002
 
         # Composed roles
-        superadmin = 1
-        utilisateur_classique_exploitant = 2
+        doctor = 1
 
         # Non-composed roles
-        peut_creer_un_utilisateur = 101
-        peut_accorder_une_exoneration = 102
-        peut_modifier_la_configuration = 103
+        can_modify_user = 101
+    end
+end
 
+module JourSemaine
+    export JOUR_SEMAINE
+    @enum JOUR_SEMAINE begin
+         lundi = 1
+         mardi = 2
+         mercredi = 3
+         jeudi = 4
+         vendredi = 5
+         samedi = 6
+         dimanche = 7
     end
 end

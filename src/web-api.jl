@@ -13,7 +13,7 @@ using Distributed
 # Ajout du chemin vers PostgresqlDAO dans le path de julia
 @everywhere push!(LOAD_PATH, ENV["POSTGRESQLDAO_PATH"])
 
-@everywhere using Mux, HTTP, HttpCommon, UUIDs
+@everywhere using Mux, HTTP, UUIDs
 
 # Overwrite some packages
 # For handling file upload in Mux
@@ -26,12 +26,12 @@ using Distributed
 # ################# #
 # BlindBake - BEGIN #
 # ################# #
-if OQSUtil.blindBakeIsRequired()
+if ICUDYNUtil.blindBakeIsRequired()
   # Temporarily change the configuration
-  OQSUtil.overwriteConfForPrecompilation()
+  ICUDYNUtil.overwriteConfForPrecompilation()
   include("precompile.jl")
   # Restore configuration
-  OQSUtil.restoreConfAfterPrecompilation()
+  ICUDYNUtil.restoreConfAfterPrecompilation()
 end
 # ################# #
 # BlindBake - ENDOF #
@@ -60,7 +60,7 @@ with_logger(logger) do
 
   for i in 1:nprocs()
     # Start the server (only once per julia session)
-    @spawnat i Mux.serve(web_api, Mux.localhost, 8083
+    @spawnat i Mux.serve(web_api, Mux.localhost, 8085
              ;reuseaddr = true)
   end
 

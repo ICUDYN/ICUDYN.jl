@@ -1,76 +1,14 @@
-using ICUDYN.Controller.User
-
-
-# curl -d '{"login":"mylogin", "password":"mypassword"}' -H "Content-Type: application/json" -X POST http://localhost:8082/createAppuser/
-new_route = route("/authenticate", req -> begin
+#
+# Get all the composed roles handled by current user for given AppUser Type
+#
+new_route = route("/role/all-composed-roles/:appuser_type", req -> begin
 
     # https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
     if req[:method] == "OPTIONS"
         return(respFor_OPTIONS_req())
     end
 
-    obj = JSON.parse(String(req[:data]))
-
-    @info "Authenticate appuser with login[$(obj["login"])]"
-
-    appuser = missing
-    error = nothing
-
-    status_code = try
-        appuser = Controller.User.
-                        authenticate(obj["login"],
-                                     obj["password"])
-        200
-
-    catch e
-        # https://pkg.julialang.org/docs/julia/THl1k/1.1.1/manual/stacktraces.html#Error-handling-1
-        formatExceptionAndStackTrace(e,
-                                     stacktrace(catch_backtrace()))
-        # rethrow(e) # Do not rethrow the error because we do want to send a
-                     #  custom message if the file could not be retrieved
-        error = e
-        500 # status_code
-    end # ENDOF try on status code
-
-
-    #
-    # Prepare the result
-    #
-    result::Union{Missing,String} = missing
-    try
-        if status_code == 200
-            result = String(JSON.json(appuser)) # The client side doesn't really need the message
-        else
-            result = String(JSON.json(string(error)))
-        end
-    catch e
-        formatExceptionAndStackTrace(e,
-                                     stacktrace(catch_backtrace()))
-        rethrow(e)
-    end
-
-    # Send the result
-    Dict(:body => result,
-         :headers => Dict("Content-Type" => "application/json",
-                          "Access-Control-Allow-Origin" => "*"),
-         :status => status_code
-        )
-
-end)
-api_routes = (api_routes..., new_route) # append the route
-
-
-#
-# Retrieve one appUser
-#
-new_route = route("/appuser/retrieve-user-from-id", req -> begin
-
-    # https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
-    if req[:method] == "OPTIONS"
-        return(respFor_OPTIONS_req())
-    end
-
-    @info "API /appuser/retrieve-user-from-id"
+    @info "API /role/all-composed-roles/:appuser_type"
 
     # Check if the user is allowed
     status_code = initialize_http_response_status_code(req)
@@ -89,7 +27,7 @@ new_route = route("/appuser/retrieve-user-from-id", req -> begin
     #
 
     # Initialize results
-    appUser::Union{Missing,AppUser} = missing
+    roles::Union{Missing,Vector{Role}} = missing
     error = nothing
 
     status_code = try
@@ -97,15 +35,12 @@ new_route = route("/appuser/retrieve-user-from-id", req -> begin
         # Get the user as extracted from the JWT
         appuser = req[:params][:appuser]
 
-        @info obj["appuser.id"]
+        appuserType =
+            string2enum(AppUserType.APPUSER_TYPE,
+                        req[:params][:appuser_type])
 
-        appUser_filter = AppUser(id = obj["appuser.id"])
-
-        appUser =
-            Controller.retrieveOneEntity(
-                                       appUser_filter,
-                                       true # retrieve complex properties
-                                      )
+        roles = Controller.User.getComposedRolesAccessibleToUser(appuser
+                                                         ;appuserType = appuserType)
 
         200 # status_code
 
@@ -125,7 +60,7 @@ new_route = route("/appuser/retrieve-user-from-id", req -> begin
     result::Union{Missing,String} = missing
     try
         if status_code == 200
-            result = String(JSON.json(appUser)) # The client side doesn't really need the message
+            result = String(JSON.json(roles)) # The client side doesn't really need the message
         else
             result = String(JSON.json(string(error)))
         end
@@ -145,21 +80,20 @@ new_route = route("/appuser/retrieve-user-from-id", req -> begin
 end)
 api_routes = (api_routes..., new_route) # append the route
 
+
 #
-# Create/Update a appUser
+# Get all the composed roles handled by current user
 #
-new_route = route("/appuser/save", req -> begin
+new_route = route("/role/all-composed-roles", req -> begin
 
     # https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
     if req[:method] == "OPTIONS"
         return(respFor_OPTIONS_req())
     end
 
-    @info "/appuser/save"
+    @info "API /role/all-composed-roles"
 
-    #
     # Check if the user is allowed
-    #
     status_code = initialize_http_response_status_code(req)
     if status_code != 200
         return Dict(:body => String(JSON.json(missing)),
@@ -169,54 +103,36 @@ new_route = route("/appuser/save", req -> begin
                      )
     end
 
-    @info "HERE0"
+    obj = JSON.parse(String(req[:data]))
 
     #
     # Heart of the API
     #
 
     # Initialize results
+    roles::Union{Missing,Vector{Role}} = missing
     error = nothing
-    appUser = missing
 
     status_code = try
 
-@info "HERE1"
-        # Create the dictionary from the JSON
-        obj = JSON.parse(String(req[:data]))
-
-@info "HERE2"
-        # Create the entity from the JSON Dict
-        entity::AppUser = json2Entity(AppUser,obj)
-
-@info "HERE3"
-
         # Get the user as extracted from the JWT
-        editor = req[:params][:appuser]
+        appuser = req[:params][:appuser]
 
-        # If entity has no ID set, we consider that it's a creation
-        if (ismissing(entity.id))
-            appUser = Controller.persist!(entity;
-                                          creator = editor)
-        # If entity has an ID, we consider that it's an update
-        else
-            appUser = Controller.update!(entity;
-                                         editor = editor,
-                                         updateVectorProps = true # update vector properties
-                                         )
-        end
+        # TODO: Create a function in RoleDAO to restrict the roles visible
+        #         to the user calling this API
+        roles = Controller.User.getComposedRolesAccessibleToUser(appuser)
 
-        200 # status code
+        200 # status_code
 
     catch e
+        # https://pkg.julialang.org/docs/julia/THl1k/1.1.1/manual/stacktraces.html#Error-handling-1
         formatExceptionAndStackTrace(e,
                                      stacktrace(catch_backtrace()))
         # rethrow(e) # Do not rethrow the error because we do want to send a
-                     #  custom appUser if the file could not be retrieved
+                     #  custom message if the file could not be retrieved
         error = e
         500 # status_code
-
-    end
+    end # ENDOF try on status code
 
     #
     # Prepare the result
@@ -224,8 +140,7 @@ new_route = route("/appuser/save", req -> begin
     result::Union{Missing,String} = missing
     try
         if status_code == 200
-            @info "HERE10"
-            result = String(JSON.json(appUser)) # The client side doesn't really need the appUser
+            result = String(JSON.json(roles)) # The client side doesn't really need the message
         else
             result = String(JSON.json(string(error)))
         end
@@ -247,16 +162,16 @@ api_routes = (api_routes..., new_route) # append the route
 
 
 #
-# Retrieve all users
+# Get all composed roles for listing
 #
-new_route = route("/appuser/get-all-users", req -> begin
+new_route = route("/role/composed-roles-for-listing", req -> begin
 
     # https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
     if req[:method] == "OPTIONS"
         return(respFor_OPTIONS_req())
     end
 
-    @info "API /appuser/get-all-users"
+    @info "API /role/composed-roles-for-listing"
 
     # Check if the user is allowed
     status_code = initialize_http_response_status_code(req)
@@ -267,6 +182,7 @@ new_route = route("/appuser/get-all-users", req -> begin
                     :status => status_code
                      )
     end
+
 
     #
     # Heart of the API
@@ -281,8 +197,7 @@ new_route = route("/appuser/get-all-users", req -> begin
         # Get the user as extracted from the JWT
         appuser = req[:params][:appuser]
 
-        queryResult =
-            Controller.User.getAllUsers(appuser)
+        queryResult = Controller.User.getComposedRolesForListing(appuser)
 
         200 # status_code
 
@@ -290,9 +205,9 @@ new_route = route("/appuser/get-all-users", req -> begin
         # https://pkg.julialang.org/docs/julia/THl1k/1.1.1/manual/stacktraces.html#Error-handling-1
         formatExceptionAndStackTrace(e,
                                      stacktrace(catch_backtrace()))
-        rethrow(e) # Do not rethrow the error because we do want to send a
+        # rethrow(e) # Do not rethrow the error because we do want to send a
                      #  custom message if the file could not be retrieved
-        # error = e
+        error = e
         500 # status_code
     end # ENDOF try on status code
 
@@ -302,7 +217,7 @@ new_route = route("/appuser/get-all-users", req -> begin
     result::Union{Missing,String} = missing
     try
         if status_code == 200
-            result = String(JSON.json(queryResult))
+            result = String(JSON.json(queryResult)) # The client side doesn't really need the message
         else
             result = String(JSON.json(string(error)))
         end
