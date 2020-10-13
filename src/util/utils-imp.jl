@@ -56,6 +56,14 @@ function ICUDYNUtil.getETLDejaIntegreDir()
     getConf("etl","deja_integre")
 end
 
+function ICUDYNUtil.getWindowSize()
+    return parse(Integer,getConf("window","size"))
+end
+
+function ICUDYNUtil.getWindowUnit()
+    return parse(Integer,getConf("window","unit"))
+end
+
 function ICUDYNUtil.getETLDejaIntegreDir(nomSousDossier)
     dirPath = joinpath(ICUDYNUtil.getETLDejaIntegreDir(),nomSousDossier)
     if !ispath(dirPath)
@@ -64,11 +72,9 @@ function ICUDYNUtil.getETLDejaIntegreDir(nomSousDossier)
     return dirPath
 end
 
-
 function ICUDYNUtil.getETLMaxSizeBeforeDBCommit()
     parse(Int,getConf("etl","max_size_before_db_commit"))
 end
-
 
 function ICUDYNUtil.getETLTnterruptionFilepath()
     joinpath(getConf("default","data_dir"),
@@ -464,10 +470,30 @@ function ICUDYNUtil.hasRole(appuser::AppUser,roleCodeName::ROLE_CODE_NAME)
     end
 end
 
-function ICUDYNUtil.diffInSecondsAsInt(before::ZonedDateTime, after::ZonedDateTime)
+function ICUDYNUtil.timeDiffInGivenUnit(before::ZonedDateTime,
+                                        after::ZonedDateTime,
+                                        unit::String)
     timediff = after - before
-    convert(Int64,timediff / Millisecond(1000))
+
+    unit = lowercase(unit)[1:3]
+
+    timediffInUnit = missing
+
+    if unit == "mil"
+        timediffInUnit = convert(Float64,timediff/ Millisecond(1))
+    elseif unit == "sec"
+        timediffInUnit = convert(Float64,timediff / Millisecond(1000))
+    elseif unit == "min"
+        timediffInUnit = convert(Float64,timediff / (Millisecond(1000) * 60))
+    elseif unit == "hou"
+        timediffInUnit = convert(Float64,timediff / (Millisecond(1000) * 60^2))
+    elseif unit == "day"
+        timediffInUnit = convert(Float64,timediff / (Millisecond(1000) * 60^2 * 24))
+    end
+
+    return timediffInUnit
 end
+
 
 function ICUDYNUtil.nowInCurrentTimeZone()
     TimeZones.ZonedDateTime(Dates.now(),
@@ -960,4 +986,42 @@ function ICUDYNUtil.restoreConfAfterPrecompilation()
 
         end
     end
+end
+
+
+function ICUDYNUtil.cutAt(df::DataFrame,
+                          indexes::Vector{T}) where T <:Integer
+
+    slices = DataFrame[]
+
+    # If there are no index, return one slice with the whole dataframe
+    if (isempty(indexes) || indexes == [1])        
+        push!(slices, df)
+        return slices
+    end
+
+    indexes = indexes .-1
+
+    lowerIdx = 1
+    upperIdx = 0
+    for idx in indexes
+
+        if upperIdx == 0
+            upperIdx = idx
+        else
+            lowerIdx = upperIdx
+            upperIdx = idx
+        end
+
+        @info "lowerIdx:upperIdx[$lowerIdx:$upperIdx]"
+        push!(slices, df[lowerIdx:upperIdx,:])
+
+    end
+
+    if last(indexes) < nrow(df)
+        push!(slices, df[last(indexes)+1:nrow(df),:])
+    end
+
+    return slices
+
 end

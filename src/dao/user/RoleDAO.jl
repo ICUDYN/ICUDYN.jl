@@ -27,7 +27,8 @@ const onetomany_counterparts =
 
 # A dictionnary of mapping between fields symbols and overriding types
 #   Left hanside is the field symbol ; right hand side is the type override
-const types_override = Dict()
+const types_override = Dict(:creator => Model.AppUser,
+                            :lastEditor => Model.AppUser)
 
 const track_changes = true
 

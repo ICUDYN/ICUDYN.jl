@@ -12,6 +12,10 @@ function getETLAIntegrerDir end
 
 function blindBakeIsRequired end
 
+function getWindowSize end
+
+function getWindowUnit end
+
 """
     Renvoie le chemin du dossier contenant les fichiers zip déjà intégrés
 """
@@ -85,6 +89,8 @@ function extension end
 
 function diffInSecondsAsInt end
 
+function timeDiffInGivenUnit end
+
 function nowInCurrentTimeZone end
 
 function nowInUTC end
@@ -132,3 +138,5 @@ function overwriteConfForPrecompilation end
 function restoreConfAfterPrecompilation end
 
 function setToMissing end
+
+function cutAt end

@@ -4,7 +4,6 @@ end
 
 @testset "Test Utilisateur.authenticate" begin
    Controller.Utilisateur.authenticate("exploitant", "test1234")
-
 end
 
 @testset "Test retrieveOneEntity" begin

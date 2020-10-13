@@ -18,7 +18,9 @@ const id_property = :id
 # A dictionnary of mapping between fields symbols and overriding types
 #   Left hanside is the field symbol ; right hand side is the type override
 const types_override = Dict(:handledRole => Model.Role,
-                            :handlerRole => Model.Role)
+                            :handlerRole => Model.Role,
+                            :creator => Model.AppUser,
+                            :lastEditor => Model.AppUser)
 
 const track_changes = true
 

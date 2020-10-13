@@ -109,12 +109,18 @@ module Controller
       include("./controller/user/AppUser-controller-def.jl")
     end
 
+    module Stay
+      include("./controller/stay/Stay-controller-def.jl")
+    end
+
     "Contient les fonctions pour l'execution automatique des scripts"
     module Scheduler
      # include("./controller/scheduler/Scheduler-def.jl")
     end
 
 end
+
+using TimeSeries
 
 # Utils
 include("./util/utils-imp.jl")
@@ -123,6 +129,9 @@ include("./util/utils-imp.jl")
 include("./controller/user/user-controller-imp.jl")
 include("./controller/user/Role-controller-imp.jl")
 include("./controller/user/AppUser-controller-imp.jl")
+
+# Stay controllers
+include("./controller/stay/Stay-controller-imp.jl")
 
 "ICUDYN configuration (of type `ConfigParse`)"
 config = ICUDYNUtil.loadConf()
