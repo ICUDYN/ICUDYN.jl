@@ -1,18 +1,10 @@
 module ICUDYN
 
-
 greet() = print("Hello World!")
-
-"Contient les déclarations des différents `@enum`.
-Par praticité chaque `@enum` est placé dans un module."
-module Enums
-    include("./enum/enums.jl")
-end
 
 module ICUDYNUtil
 
-    using ConfParser,PostgresqlDAO,
-          PostgresqlDAO.PostgresqlDAOUtil, PostgresqlDAO.Controller,
+    using ConfParser,PostgresORM,
           LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Base.StackTraces,
           Dates, TimeZones, InfoZIP
 
@@ -39,78 +31,18 @@ end
 
 module Model
 
-    using Dates, TimeZones, UUIDs, PostgresqlDAO, PostgresqlDAO.Model
-    using ..Enums, ..Enums.AppUserType, ..Enums.RoleCodeName
-
-    export AppUser, Role, AppUserRoleAsso, RoleRoleAsso,
-           File, FrontendVersion, ScheduledTaskExecution
-
-    include("./model/abstract_types.jl")
-    include("./model/user/AppUser.jl")
-    include("./model/user/Role.jl")
-    include("./model/user/RoleRoleAsso.jl")
-    include("./model/user/AppUserRoleAsso.jl")
-    include("./model/misc/File.jl")
-    include("./model/misc/FrontendVersion.jl")
-    include("./model/misc/ScheduledTaskExecution.jl")
+    using Dates, TimeZones, UUIDs, PostgresORM
+   
 end
 
-module DAO
-    using ..Model, PostgresqlDAO
-
-    # Overwrite the table for PostgresqlDAO.Model.Modification
-    include("./package-overwrite/PostgresqlDAO-overwrite.jl")
-
-     module AppUserDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/user/AppUserDAO.jl")
-    end
-    module AppUserRoleAssoDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/user/AppUserRoleAssoDAO.jl")
-    end
-    module RoleDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/user/RoleDAO.jl")
-    end
-    module RoleRoleAssoDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/user/RoleRoleAssoDAO.jl")
-    end
-    module FileDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/misc/FileDAO.jl")
-    end
-    module FrontendVersionDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/misc/FrontendVersionDAO.jl")
-    end
-    module ScheduledTaskExecutionDAO
-       using ..Model, PostgresqlDAO, PostgresqlDAO.Model.Enums.CRUDType
-       include("./dao/misc/ScheduledTaskExecutionDAO.jl")
-    end
-
-end
 
 module Controller
 
-    using ..ICUDYN, ..Model, ..ICUDYNUtil, ..Enums
-    using PostgresqlDAO, PostgresqlDAO.Controller,
-          PostgresqlDAO.Model.Enums.CRUDType,
-          Tables, LibPQ, Dates
-    export persist!, update!, retrieveOneEntity, retrieveEntities,
-           deleteAlike, persistInBulkWithoutReturningValues,
-           persistInBulkUsingCopy, updateVectorProps!
-
-    include("./controller/default-crud.jl")
-
-    module User
-      include("./controller/user/Role-controller-def.jl")
-      include("./controller/user/AppUser-controller-def.jl")
-    end
-
+    using ..ICUDYN, ..Model, ..ICUDYNUtil
+    using PostgresORM, LibPQ, Dates
+   
     module Stay
-      include("./controller/stay/Stay-controller-def.jl")
+      include("./Controller/Stay/Stay-controller-def.jl")
     end
 
     "Contient les fonctions pour l'execution automatique des scripts"
@@ -118,22 +50,27 @@ module Controller
      # include("./controller/scheduler/Scheduler-def.jl")
     end
 
-end
+    module ETL
+    include("Controller/ETL/ETL-def.jl")
+      module Misc
+         include("Controller/ETL/Misc/Misc-def.jl")
+      end
+    end
 
-using TimeSeries
+end # ENDOF Controller
+
 
 # Utils
 include("./util/utils-imp.jl")
 
-# User controllers
-include("./controller/user/user-controller-imp.jl")
-include("./controller/user/Role-controller-imp.jl")
-include("./controller/user/AppUser-controller-imp.jl")
-
 # Stay controllers
-include("./controller/stay/Stay-controller-imp.jl")
+include("./Controller/Stay/Stay-controller-imp.jl")
+
+# ETL controllers
+include("Controller/ETL/ETL-imp.jl")
+
 
 "ICUDYN configuration (of type `ConfigParse`)"
 config = ICUDYNUtil.loadConf()
 
-end # module
+end # module ICUDYN

@@ -1,3 +1,0 @@
-function getComposedRolesAccessibleToUser end
-
-function getComposedRolesForListing end

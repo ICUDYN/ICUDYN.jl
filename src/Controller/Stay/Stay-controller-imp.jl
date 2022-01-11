@@ -1,4 +1,4 @@
-using ICUDYN.Controller.Stay, DataFrames
+using ICUDYN.Controller.Stay, DataFrames, TimeSeries
 
 function Stay.convertDataFrameToTimeArray(df::DataFrame)
     # TimeArray(df′, timestamp = :A)

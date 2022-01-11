@@ -1,15 +1,9 @@
-# For handling whitespaces in INI files
-include("../package-overwrite/ConfParser-overwrite.jl")
-
 # No choice...calling 'using' with in the module block does not work
 using Dates, Base.StackTraces, TimeZones, ICUDYN, ICUDYN.ICUDYNUtil, LibPQ, InfoZIP,
-      DataFrames, XLSX, Decimals
-using PostgresqlDAO.PostgresqlDAOUtil, PostgresqlDAO.Controller
+      DataFrames, XLSX, Decimals, ConfParser
 using Dates, TimeZones, Distributed, CSV, DataFrames, InfoZIP, Query, TimeZones
-using PostgresqlDAO, PostgresqlDAO.Controller, PostgresqlDAO.PostgresqlDAOUtil,
-      PostgresqlDAO.Model.Enums.CRUDType, LibPQ
-using ..Model, ..ICUDYNUtil, ..Controller, ..ICUDYN, ..Enums
-using ICUDYN.Enums.AppUserType, ICUDYN.Enums.RoleCodeName, ICUDYN.Model, ICUDYN
+using PostgresORM, LibPQ
+using ..Model, ..ICUDYNUtil, ..Controller, ..ICUDYN
 
 # see ~/.julia/config/startup.jl for setting the environment variable
 function ICUDYNUtil.loadConf()::ConfParse
@@ -199,85 +193,6 @@ function ICUDYNUtil.sendemail(recipients::Vector{String},subject::String,message
 
 end
 
-"""
-Supported data types are Union{Missing, Bool, Float64, Int64, Date, DateTime,
-  Time, String} or XLSX.CellValue."
-"""
-function ICUDYNUtil.prepareDataFrameForExcel!(df::DataFrame)
-
-    for col in names(df)
-      type = PostgresqlDAOUtil.get_nonmissing_typeof_uniontype(eltype(df[col]))
-      if !(type in [Missing, Bool, Float64, Int64, Date, DateTime, Time, String])
-          if (type <: Integer && type != Int64)
-              df[col] = convert(Vector{Union{Missing, Int64}}, df[col])
-          elseif type <: Decimals.Decimal
-              df[col] = convert(Vector{Union{Missing, Float64}}, df[col])
-          elseif (type <: AbstractFloat && type != Float64)
-              df[col] = convert(Vector{Union{Missing, Float64}}, df[col])
-          end
-      end
-    end
-
-end
-
-function ICUDYNUtil.exportToExcel(data::Any)
-
-    ICUDYNUtil.prepareDataFrameForExcel!(data)
-
-    filepath = tempname()
-
-    XLSX.openxlsx(filepath, mode="w") do xf
-       sheet = xf[1]
-       XLSX.writetable!(sheet,
-                        collect(DataFrames.eachcol(data)),
-                        string.(names(data)),
-                        anchor_cell=XLSX.CellRef("A1"))
-    end
-
-    return filepath
-end
-
-using TickTock
-function ICUDYNUtil.exportToExcel(sheetNamesAndDataFrames::Dict{String,DataFrame}
-                              ;filepath = tempname())
-    # filepath = tempname()
-
-    tick()
-
-    XLSX.openxlsx(filepath, mode="w") do xf
-
-       counter = 0
-       for (sheetName, df) in sheetNamesAndDataFrames
-
-
-           ICUDYNUtil.prepareDataFrameForExcel!(df)
-
-           @info "Elapsed time after prepareDataFrameForExcel[$(peektimer())]"
-
-           counter += 1
-           sheet::Union{XLSX.Worksheet, Missing} = missing
-           if counter == 1
-               sheet = xf[1]
-               XLSX.rename!(sheet, sheetName)
-           else
-               sheet = XLSX.addsheet!(xf, sheetName)
-           end
-
-           @info "Elapsed time before writetable[$(peektimer())]"
-
-           XLSX.writetable!(sheet,
-                            collect(DataFrames.eachcol(df)),
-                            string.(names(df)),
-                            anchor_cell=XLSX.CellRef("A1"))
-           @info "Elapsed time after writetable[$(peektimer())]"
-       end
-    end
-
-    tock()
-
-    return filepath
-end
-
 function ICUDYNUtil.formatDate(dt::Missing)
     return missing
 end
@@ -458,18 +373,6 @@ function ICUDYNUtil.extension(url::Any)
    result
 end
 
-function ICUDYNUtil.hasRole(roleCodeName::ROLE_CODE_NAME,appuser::AppUser)
-    ICUDYNUtil.hasRole(appuser,roleCodeName)
-end
-
-function ICUDYNUtil.hasRole(appuser::AppUser,roleCodeName::ROLE_CODE_NAME)
-    if any(x -> (x.codeName == roleCodeName), appuser.allRoles)
-        return true
-    else
-        return false
-    end
-end
-
 function ICUDYNUtil.timeDiffInGivenUnit(before::ZonedDateTime,
                                         after::ZonedDateTime,
                                         unit::String)
@@ -504,14 +407,6 @@ function ICUDYNUtil.nowInUTC()
     return now(Dates.UTC)
 end
 
-# TODO: We should manage to specify that the datatype is an Enum
-function ICUDYNUtil.listEnums(enumType::DataType
-                          ;appuser::Model.AppUser)
-
-    tupleOfEnums = instances(enumType)
-
-    return [tupleOfEnums...]
-end
 
 function ICUDYNUtil.addTimeToZonedDateTime(zdt::ZonedDateTime, time::Time)
     return zdt + Hour(time) + Minute(time) + Second(time)
@@ -600,13 +495,6 @@ function ICUDYNUtil.addPrefixToColNames!(df::DataFrame,
 
 end
 
-
-function ICUDYNUtil.getFileFullPath(file::File)
-    fullPath = joinpath(getDataDir(),file.pathFromDataDir)
-    return fullPath
-end
-
-
 function ICUDYNUtil.getICUDYNTempDir()
     dirPath = joinpath(ICUDYN.getDataDir(),"tmp")
     if !ispath(dirPath)
@@ -626,16 +514,6 @@ function ICUDYNUtil.getICUDYNTempFile(prefix::String, extension::String)
     return joinpath(ICUDYNUtil.getICUDYNTempDir(),
                     string(prefix,"-",basename(tempname()),extension))
 end
-
-function ICUDYNUtil.cancelFile!(file::File,appuser::AppUser)
-
-    # Cancel the file
-    file.cancelled = true
-    Controller.update!(file;
-                       editor = appuser)
-
-end
-
 
 function ICUDYNUtil.replaceMissingsBy0s!(df::DataFrame)
 
@@ -687,274 +565,6 @@ function ICUDYNUtil.getTimeZone(zdt::ZonedDateTime)
       if (shiftInHours > 0) shiftInHours = "+$shiftInHours"
       end
       TimeZones.TimeZone("UTC$shiftInHours")
-
-end
-
-"""
-
-    createAllTablesPartitionsIfNextYearIsClose()
-
-Vérifie que les partitions de l'année qui vient existent
-"""
-function ICUDYNUtil.createAllTablesPartitionsIfNextYearIsClose()
-
-    _today = today()
-    inAFewDays = _today + Day(15)
-    if year(_today) != year(inAFewDays)
-        ICUDYNUtil.createAllTablesPartitions(year(inAFewDays),
-                                          year(inAFewDays))
-    end
-
-end
-
-function ICUDYNUtil.createAllTablesPartitions(startYear::Integer,
-                                           endYear::Integer)
-
-    tablesAsDF = ICUDYNUtil.getTablesPartitionnees()
-
-    for row in eachrow(tablesAsDF)
-        for year in startYear:endYear
-            ICUDYNUtil.createTablePartition("$(row.table_schema).$(row.table_name)",
-                                         year::Integer)
-        end
-    end
-
-end
-
-function ICUDYNUtil.createTablePartition(tableName::String,
-                                      year::Integer)
-
-  for month in 1:12
-      ICUDYNUtil.createTablePartition(tableName,
-                                   year,
-                                   month)
-  end
-
-end
-
-function ICUDYNUtil.createTablePartition(tableNameWithSchema::String,
-                                      year::Integer,
-                                      month::Integer)
-
-    # Initialise le nom du schema et de la table comme si on avait pas donné
-    #   le schéma
-    schemaName = "public"
-    tableName = tableNameWithSchema
-
-    schemaNameAndTableName = split(tableNameWithSchema, '.')
-    if length(schemaNameAndTableName) == 2
-        schemaName = string(schemaNameAndTableName[1])
-        tableName = string(schemaNameAndTableName[2])
-    end
-
-    partitionTable = ICUDYNUtil.getTablePartitionName(tableName,
-                                                   year,
-                                                   month)
-
-    @info "Create table partition $schemaName.$partitionTable"
-
-    # Vérifie que la partition n'existe pas déjà
-    if ICUDYNUtil.tableOrPartitionExists(schemaName, partitionTable)
-        @info "La partition $schemaName.$partitionTable existe déjà"
-        return
-    end
-
-    # Définie les bornes de la partition
-    startDate = Dates.Date(year,month,01)
-    endDate = startDate + Month(1)
-    queryArgs = []
-
-    # @info "default vector persist!"
-    dbconn = openDBConnAndBeginTransaction()
-
-    result::Int64 = 0
-    try
-         queryString = "CREATE TABLE $schemaName.$partitionTable
-                         PARTITION OF $tableNameWithSchema
-                         FOR VALUES FROM ('$startDate') TO ('$endDate')"
-
-         preparedQuery = LibPQ.prepare(dbconn,
-                                       queryString)
-
-         # Prepare the query aruments
-         queryResult = execute(preparedQuery,
-                                queryArgs
-                               ;throw_error=true)
-
-
-         # Return the number of rows inserted
-         # result = LibPQ.num_affected_rows(queryResult)
-         commitDBTransaction(dbconn)
-
-    catch e
-       rollbackDBTransaction(dbconn)
-       formatExceptionAndStackTrace(e,
-                                    stacktrace(catch_backtrace()))
-       # rethrow(e) # On ne veut pas relancer d'exception parce que cette fonction
-                    #   a peut-être été appelée dans une boucle et on ne veut pas
-                    #   que les autres créations de partitions échouent
-    finally
-       closeDBConn(dbconn)
-    end
-end
-
-"""
-    vacuumAndReindexTablesPartitionnees(schema::String,
-                                        tableName::String
-                                        journeeExploitation::Date)
-
-Opérations de maintenance sur la partition de la table correspondant à la
-journée d'exploitation donnée
-"""
-function ICUDYNUtil.vacuumAndReindexTablesPartitionnees(schema::String,
-                                                     tableName::String,
-                                                     journeeExploitation::Date)
-
-
-     partitionName = ICUDYNUtil.getTablePartitionName(tableName,
-                                                   Dates.year(journeeExploitation),
-                                                   Dates.month(journeeExploitation))
-     @info "Vaccum and reindex $(schema).$(partitionName)"
-     queryStringVacuum = "VACUUM (ANALYZE) $(schema).$(partitionName)"
-     queryStringReindex = "REINDEX TABLE $(schema).$(partitionName)"
-     dbconn = ICUDYNUtil.openDBConn()
-     try
-         PostgresqlDAO.Controller.execute_plain_query(queryStringVacuum,
-                                                      missing,
-                                                      dbconn)
-         PostgresqlDAO.Controller.execute_plain_query(queryStringReindex,
-                                                      missing,
-                                                      dbconn)
-     catch e
-         rethrow(e)
-     finally
-         closeDBConn(dbconn)
-     end
-
-     return nothing
-end
-
-"""
-    vacuumAndReindexTablesPartitionnees(schema::String,
-                                        journeeExploitation::Date)
-
-Opérations de maintenance sur les partitions des tables d'un schéma donné pour les
-partitions correspondant à la journée d'exploitation donnée
-"""
-function ICUDYNUtil.vacuumAndReindexTablesPartitionnees(schema::String,
-                                                     journeeExploitation::Date)
-
-    year = Dates.year(journeeExploitation)
-    month = Dates.month(journeeExploitation)
-
-    # Récupère la liste de toutes les tables partitionnées
-    tablesPartitionneesDF = ICUDYNUtil.getTablesPartitionnees()
-
-    for r in eachrow(tablesPartitionneesDF)
-        # Si la table est dans le schéma d'intérêt on s'en occupe
-        if r.table_schema == schema
-            ICUDYNUtil.vacuumAndReindexTablesPartitionnees(schema,
-                                                        r.table_name,
-                                                        journeeExploitation)
-        end
-    end
-
-end
-
-function ICUDYNUtil.getTablePartitionName(tableName::String,
-                                       year::Integer,
-                                       month::Integer)
-    # Add the trailing 0 if the month is inferior to 10
-    monthStr = lpad(month,2,"0")
-    partitionTable = "$(tableName)_$(year)$(monthStr)"
-
-    return partitionTable
-end
-
-
-
-function ICUDYNUtil.tableOrPartitionExists(schema::String, tableName::String)
-    queryString = "SELECT EXISTS (
-                   SELECT FROM information_schema.tables
-                   WHERE  table_schema = '$schema'
-                   AND    table_name   = '$tableName'
-                   );"
-    queryResult = ICUDYNUtil.openDBConnectionAndExecuteQuery(queryString,[])
-    return queryResult[1,1]
-end
-
-
-function ICUDYNUtil.getTables()
-
-    queryString = "
-       SELECT table_schema, table_name
-       FROM information_schema.tables
-       WHERE table_catalog = \$1
-           AND table_type = 'BASE TABLE'
-           AND table_schema NOT IN ('pg_catalog', 'information_schema')
-       ORDER BY table_schema, table_name"
-
-    queryArgs = [getConf("database","database")]
-    tables = ICUDYNUtil.openDBConnectionAndExecuteQuery(queryString, queryArgs)
-
-    # Retire les tables correspondant à des partitions
-    filter!(x -> !occursin(r"_[0-9]{6}$",x.table_name), tables)
-
-    return tables
-end
-
-"""
-    getTablesPartitionnees()
-
-Renvoie la liste de toutes les tables qui doivent être partitionnées.
-"""
-function ICUDYNUtil.getTablesPartitionnees()
-    conf = getConf("database","tables_non_partitionnees")
-    schemasCompletementExclus = conf |>
-            v -> filter(x -> occursin("*",x), v) |>
-            v -> map(x -> replace(x,".*" => ""), v)
-    schemasPartiellementExclus = filter(x -> !occursin("*",x), conf)
-
-    tables = ICUDYNUtil.getTables()
-
-    tables = tables |>
-      # Supprime toutes les tables dont les schémas sont complètement exclus
-      v -> filter(x -> !(x.table_schema in schemasCompletementExclus),v) |>
-      v -> filter(x -> !("$(x.table_schema).$(x.table_name)" in schemasPartiellementExclus), v)
-
-    return tables
-
-end
-
-
-function ICUDYNUtil.getCurrentFrontendVersion()
-
-    dbconn = ICUDYNUtil.openDBConn()
-    result = try
-        query_string =
-           "SELECT * FROM misc.frontend_version
-            ORDER BY name DESC
-            LIMIT 1
-            "
-
-        result = PostgresqlDAO.Controller.
-            execute_query_and_handle_result(query_string,
-                                            FrontendVersion,
-                                            [], # query_args
-                                            false, # retrieve_complex_props
-                                            dbconn::LibPQ.Connection)
-        result
-    catch e
-        rethrow(e)
-    finally
-        ICUDYNUtil.closeDBConn(dbconn)
-    end
-
-    if isempty(result)
-        return missing
-    end
-
-    return result[1]
 
 end
 
@@ -1024,4 +634,16 @@ function ICUDYNUtil.cutAt(df::DataFrame,
 
     return slices
 
+end
+
+
+function isMissing(str::String)
+    if isempty(str) || lowercase(str) in ["null"]
+        return true
+    end
+    return false
+end
+
+function isMissing(nb::Number)
+    return false
 end
