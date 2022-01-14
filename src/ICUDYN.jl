@@ -1,8 +1,5 @@
 module ICUDYN
 
-using Dates: print, include
-using XLSX: isempty
-using Base: Int16
 greet() = print("Hello World!")
 
 module ICUDYNUtil
