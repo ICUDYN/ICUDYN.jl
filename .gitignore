@@ -1,0 +1,10 @@
+# Ignore developers configuration
+conf/*
+!conf/.gitkeep
+
+# Ignore patients data
+test/assets/patients/*
+!test/assets/patients/.gitkeep
+
+debug-scripts/*
+!debug-scripts/.gitkeep

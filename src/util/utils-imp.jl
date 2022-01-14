@@ -1,10 +1,3 @@
-# No choice...calling 'using' with in the module block does not work
-using Dates, Base.StackTraces, TimeZones, ICUDYN, ICUDYN.ICUDYNUtil, LibPQ, InfoZIP,
-      DataFrames, XLSX, Decimals, ConfParser
-using Dates, TimeZones, Distributed, CSV, DataFrames, InfoZIP, Query, TimeZones
-using PostgresORM, LibPQ
-using ..Model, ..ICUDYNUtil, ..Controller, ..ICUDYN
-
 # see ~/.julia/config/startup.jl for setting the environment variable
 function ICUDYNUtil.loadConf()::ConfParse
 
@@ -32,6 +25,14 @@ end
 
 function ICUDYNUtil.getDataDir()
     getConf("default","data_dir")
+end
+
+function ICUDYNUtil.getDataInputDir()
+    joinpath(getDataDir(), "input")
+end
+
+function ICUDYNUtil.getDataOutputDir()
+    joinpath(getDataDir(), "output")
 end
 
 function ICUDYNUtil.getMissingFilePath()
@@ -637,13 +638,76 @@ function ICUDYNUtil.cutAt(df::DataFrame,
 end
 
 
-function isMissing(str::String)
+function ICUDYNUtil.isMissing(str::String)
     if isempty(str) || lowercase(str) in ["null"]
         return true
     end
     return false
 end
 
-function isMissing(nb::Number)
+function ICUDYNUtil.isMissing(nb::Number)
     return false
+end
+
+"""
+Supported data types are Union{Missing, Bool, Float64, Int64, Date, DateTime,
+  Time, String} or XLSX.CellValue."
+"""
+function ICUDYNUtil.prepareDataFrameForExcel!(df::DataFrame)
+
+    for col in names(df)
+      type = PostgresORM.PostgresORMUtil.get_nonmissing_typeof_uniontype(eltype(df[!,col]))
+      if !(type in [Missing, Bool, Float64, Int64, Date, DateTime, Time, String])
+          if (type <: Integer && type != Int64)
+              df[col] = convert(Vector{Union{Missing, Int64}}, df[col])
+          elseif type <: Decimals.Decimal
+              df[col] = convert(Vector{Union{Missing, Float64}}, df[col])
+          elseif (type <: AbstractFloat && type != Float64)
+              df[col] = convert(Vector{Union{Missing, Float64}}, df[col])
+          end
+      end
+    end
+
+end
+
+function ICUDYNUtil.exportToExcel(data::Any ;filepath = "$(tempname()).xlsx")
+
+    ICUDYNUtil.prepareDataFrameForExcel!(data)
+
+    XLSX.openxlsx(filepath, mode="w") do xf
+       sheet = xf[1]
+       XLSX.writetable!(sheet,
+                        collect(DataFrames.eachcol(data)),
+                        string.(names(data)),
+                        anchor_cell=XLSX.CellRef("A1"))
+    end
+    return filepath
+end
+
+function ICUDYNUtil.exportToExcel(
+    dfs::Vector{DataFrame},
+    sheetsNames::Vector{String}
+    ;filepath = "$(tempname()).xlsx"
+    )
+
+    @info "filepath[$filepath]"
+
+    for df in dfs
+        ICUDYNUtil.prepareDataFrameForExcel!(df)
+    end
+
+    XLSX.openxlsx(filepath, mode="w") do xf
+       for (_idx,df) in enumerate(dfs)
+           if _idx > 1
+               XLSX.addsheet!(xf)
+           end
+           sheet = xf[_idx]
+           XLSX.rename!(sheet,sheetsNames[_idx])
+           XLSX.writetable!(sheet,
+                            collect(DataFrames.eachcol(df)),
+                            string.(names(df)),
+                            anchor_cell=XLSX.CellRef("A1"))
+       end
+    end
+    return filepath
 end

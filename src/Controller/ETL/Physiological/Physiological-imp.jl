@@ -1,13 +1,8 @@
-using .Controller.ETL
-using Statistics
-using DataStructures
+"""
+     computeGender(window::DataFrame)
 
-
-# """
-#     computeGender(window::DataFrame)
-
-# Computes the gender of the patient
-# """
+Computes the gender of the patient
+"""
 function ETL.Physiological.computeGender(window::DataFrame)
     res = window |> 
         n -> filter(
@@ -39,9 +34,7 @@ function ETL.Physiological.computeAge(window::DataFrame)
                 ), 
             n) |> 
         n -> n.terseForm |>
-        n -> if isempty(n) missing else round(Int,mean(n)) end 
-        #TODO Bapt : Vérifier qu'on veut bien faire la moyenne de l'age si plusieurs valeurs
-        #Plus logique de prendre le dernier age ?
+        n -> if isempty(n) missing else first(n) end
              
     return res
 end
@@ -135,12 +128,10 @@ function ETL.Physiological.computeUrineVolume(window::DataFrame)
     if isempty(res) 
         return missing 
     else 
-        res = replace.(res, " ml"=>"")
+        res = replace.(res, "ml"=>"")
         res = parse.(Int,res)
         return round(mean(res),digits=2)
     end
-    
-        
 
 end
 
@@ -215,7 +206,7 @@ end
 
 # Computes the Glasgow score of the patient
 # """
-function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::Bool=false)
+function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::Bool)
     
     if any_sedative
         return 16
@@ -241,9 +232,10 @@ end
 
 # Computes the Ramsay score of the patient
 # """
-function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflurane, target_score, any_sedative::Bool=false)
+function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflurane, target_score, any_sedative)
 
 #TODO Bapt : Code R pas fini ? Fonction a discuter
+    error("Implementation of this method not finished")
     res = window |>
     n -> filter(
         r -> (
@@ -254,6 +246,29 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflu
     n -> n.terseForm |>
     n -> if isempty(n) missing else round(Int,mean(n)) end 
     return res
+    #code R :
+    # NOTE: imposseible d'avoir la valeur cible
+  # if (is.nan(neuro_ramsay)) {
+  #   neuro_ramsay <- CONFIG$missing_value
+  # } else {
+  #   
+  #   if (!is.na(sedative_isoflurane) && sedative_isoflurane > 0) {
+  #     
+  #     if (neuro_ramsay >= 5) {
+  #       neuro_ramsay_normal = T
+  #     } else {
+  #       neuro_ramsay_normal = F
+  #     }
+  #     
+  #   } else if (isTRUE(any_sedative)) {
+  #     if (neuro_ramsay >= target_score) {
+  #       neuro_ramsay_normal = T
+  #     } else {
+  #       neuro_ramsay_normal = F
+  #     }
+  #   }
+  #   
+  # }
 
 
 end
@@ -301,9 +316,9 @@ function ETL.Physiological.computeDouleurStringValue(window::DataFrame)
     n -> if isempty(n) return missing else n end |>
     n -> counter(n) |>
     # n -> max(n, key=n.get())
-    n -> collect(keys(n))[argmax(collect(values(n)))]
-
-    #TODO Bapt : on fait quoi si 2 valeurs ont le même nombre d'occurences ? Pour l'instant prend la dernière occurence max apparaissant dans le dict
+    n -> collect(keys(n))[argmax(collect(values(n)))] 
+    
+    #Pour l'instant prend la dernière occurence max apparaissant dans le dict
     return res
     
 

@@ -4,6 +4,10 @@ function getConf end
 
 function getDataDir end
 
+function getDataInputDir end
+
+function getDataOutputDir end
+
 function getICUDYNTempDir end
 
 function getICUDYNTempFile end
@@ -142,3 +146,6 @@ function setToMissing end
 function cutAt end
 
 function isMissing end
+
+function prepareDataFrameForExcel! end
+function exportToExcel end

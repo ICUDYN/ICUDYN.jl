@@ -1,4 +1,6 @@
-function get_patient_df_from_csv end
-function cut_patient_df end
+function preparePatientsFromRawExcelFile end
+function getPatientDFFromXLSX end
+function cutPatientDF end
+function refineWindow end
 
 # Refining functions

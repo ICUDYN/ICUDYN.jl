@@ -40,7 +40,7 @@ end
         )
     result = ETL.Physiological.computeAge(df)
 
-    @test result == 23
+    @test result == 20
 end
 
 

@@ -1,5 +1,22 @@
 include("../../runtests-prerequisite.jl")
 
+
+@testset "Test get_patient_df_from_csv" begin
+
+    patientCodeName = ICUDYNUtil.getConf("test","patient_code_name")
+    patientsDir = ICUDYNUtil.getConf("test","patients_dir")
+    patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
+    isfile(patientFilename)
+    df = XLSX.readtable(patientFilename,1) |> n -> DataFrame(n...)
+    typeof(df)
+
+    patient_dir = INCUDYNUtil.getDataInputDir()
+    patient_csv_filename = patient_dir * "all_events_" * patient_name * ".csv"
+    return DataFrame(CSV.File(patient_csv_filename))
+end
+
+
+
 @testset "Test cut_patient_df" begin
 
     # Check that event at cutting time gets into the next window

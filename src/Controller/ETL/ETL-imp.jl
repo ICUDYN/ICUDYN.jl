@@ -7,13 +7,52 @@ include("./Physiological/Physiological-imp.jl")
 # ################################ #
 # Main functions of the ETL module #
 # ################################ #
-function ETL.get_patient_df_from_csv(patient_name)
-    patient_dir = "/home/baptiste/data/icudyn/DATA/" #hardcoded for now
-    patient_csv_filename = patient_dir * "all_events_" * patient_name * ".csv"
-    return DataFrame(CSV.File(patient_csv_filename))
-end #get_patient_df_from_csv
+# function ETL.getPatientDFFromCSV(csvPath::String)
 
-function ETL.cut_patient_df(df::DataFrame)
+# end #get_patient_df_from_csv
+
+function ETL.preparePatientsFromRawExcelFile(
+    patientsCodeNames::Vector{String}
+    ;filepath = "$(tempname()).xlsx"
+)
+    patientsPreparedData::Vector{DataFrame} = DataFrame[]
+
+    for patientCodeName in patientsCodeNames
+        srcDF = getPatientDFFromXLSX(patientCodeName)
+        push!(patientsPreparedData,
+              ETL.processPatientRawHistory(srcDF))
+    end
+
+    ICUDYNUtil.exportToExcel(
+        patientsPreparedData,
+        patientsCodeNames
+        ;filepath = filepath
+    )
+end
+
+function ETL.getPatientDFFromXLSX(patientCodeName::String) 
+    patientsDir = ICUDYNUtil.getDataInputDir()
+    patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
+    isfile(patientFilename)
+    df = XLSX.readtable(patientFilename,1) |> n -> DataFrame(n...)
+    return df
+end
+
+function ETL.processPatientRawHistory(df::DataFrame)
+    rawWindows::Vector{DataFrame} = ETL.cutPatientDF(df)
+    refinedWindows = DataFrame[]    
+    for w in rawWindows
+        push!(refinedWindows,ETL.refineWindow(w))
+    end
+
+    return combineRefinedWindows(refinedWindows)
+
+end
+
+function combineRefinedWindows(refinedWindows::Vector)
+end
+
+function ETL.cutPatientDF(df::DataFrame)
     df_array = DataFrame[]
 
     # Order DataFrame
@@ -50,3 +89,6 @@ function ETL.cut_patient_df(df::DataFrame)
     # end
     return df_array
 end #cut_patient_df
+
+function ETL.refineWindow(window::DataFrame)
+end
