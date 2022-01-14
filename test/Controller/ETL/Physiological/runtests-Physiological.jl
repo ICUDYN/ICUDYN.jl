@@ -219,6 +219,12 @@ end
 
 end
 
+
+
+
+
+
+
 # @testset "Test computeNeuroRamsay" begin
 
 #     #TODO Bapt : finir fonction après discussion (voir dans implémentation fonction)
