@@ -30,8 +30,8 @@ end
         terseForm = [
             20,
             40,
-            22, 
-            26], 
+            22,
+            26],
         attributeDictionaryPropName = [
             "ptDemographic_patientAgeInt.ageValue",
             "case1",
@@ -51,8 +51,8 @@ end
         terseForm = [
             180,
             200,
-            182, 
-            186], 
+            182,
+            186],
         attributeDictionaryPropName = [
             "ptDemographic_PtHeight.height",
             "case1",
@@ -72,8 +72,8 @@ end
         terseForm = [
             80,
             100,
-            82, 
-            86], 
+            82,
+            86],
         attributeDictionaryPropName = [
             "PtAssessment_ptWeightIntervention.ptWeight",
             "case1",
@@ -93,7 +93,7 @@ end
         terseForm = [
             60,
             65,
-            70, 
+            70,
             75,
             82,
             91.72],
@@ -119,7 +119,7 @@ end
         verboseForm = [
             "60 ml",
             "null",
-            "120 ml", 
+            "120 ml",
             "130 ml",
             "140 ml"],
         attributeDictionaryPropName = [
@@ -142,14 +142,14 @@ end
         terseForm = [
             80,
             100,
-            82, 
+            82,
             86,
             72,
             "null",
             122,
             77,
             113
-            ], 
+            ],
         attributeDictionaryPropName = [
             "PtAssessment_arterialBPInt.mean",
             "case1",
@@ -177,8 +177,8 @@ end
         terseForm = [
             37,
             36.8,
-            "null", 
-            37.6], 
+            "null",
+            37.6],
         attributeDictionaryPropName = [
             "PtAssessment_temperatureInt.temperature",
             "case1",
@@ -198,9 +198,9 @@ end
         terseForm = [
             10,
             10,
-            "null", 
+            "null",
             11,
-            11], 
+            11],
         attributeDictionaryPropName = [
             "PtAssessment_GCSInt.GCSNum",
             "case1",
@@ -208,7 +208,7 @@ end
             "PtAssessment_GCSInt.GCSNum",
             "PtAssessment_GCSInt.GCSNum"]
         )
-    result = ETL.Physiological.computeNeuroGlasgow(df)
+    result = ETL.Physiological.computeNeuroGlasgow(df,false)
 
     @test result == 11
 
@@ -221,34 +221,34 @@ end
 
 
 
-@testset "Test computeNeuroRamsay" begin
+# @testset "Test computeNeuroRamsay" begin
 
-    #TODO Bapt : finir fonction après discussion (voir dans implémentation fonction)
-    #
-    df = DataFrame(
-        terseForm = [
-            10,
-            10,
-            "null", 
-            11,
-            11], 
-        attributeDictionaryPropName = [
-            "PtAssessment_GCSInt.GCSNum",
-            "case1",
-            "PtAssessment_GCSInt.GCSNum",
-            "PtAssessment_GCSInt.GCSNum",
-            "PtAssessment_GCSInt.GCSNum"]
-        )
-    result = ETL.Physiological.computeNeuroRamsay(df)
+#     #TODO Bapt : finir fonction après discussion (voir dans implémentation fonction)
+#     #
+#     df = DataFrame(
+#         terseForm = [
+#             10,
+#             10,
+#             "null",
+#             11,
+#             11],
+#         attributeDictionaryPropName = [
+#             "PtAssessment_GCSInt.GCSNum",
+#             "case1",
+#             "PtAssessment_GCSInt.GCSNum",
+#             "PtAssessment_GCSInt.GCSNum",
+#             "PtAssessment_GCSInt.GCSNum"]
+#         )
+#     result = ETL.Physiological.computeNeuroRamsay(df)
 
-    @test result == 11
+#     @test result == 11
 
-    result = ETL.Physiological.computeNeuroRamsay(df,true)
+#     result = ETL.Physiological.computeNeuroRamsay(df,true)
 
-    @test result == 16
+#     @test result == 16
 
 
-end
+# end
 
 
 
@@ -259,9 +259,9 @@ end
         terseForm = [
             2,
             2,
-            "null", 
+            "null",
             3,
-            3], 
+            3],
         attributeDictionaryPropName = [
             "PtAssessment_Evaluation_douleur.EV_num",
             "case1",
@@ -278,9 +278,9 @@ end
         terseForm = [
             "",
             "",
-            "null", 
+            "null",
             "",
-            ""], 
+            ""],
         attributeDictionaryPropName = [
             "PtAssessment_Evaluation_douleur.EV_num",
             "case1",
@@ -303,10 +303,10 @@ end
         verboseForm = [
             "faible",
             "faible",
-            "null", 
+            "null",
             "modérée",
             "forte",
-            "faible"], 
+            "faible"],
         attributeDictionaryPropName = [
             "PtAssessment_Evaluation_douleur.EV_analogique",
             "case1",
@@ -332,9 +332,9 @@ end
         terseForm = [
             6,
             5,
-            "null", 
+            "null",
             7,
-            7], 
+            7],
         attributeDictionaryPropName = [
             "PtAssessment_Echelle_comportementale_douleur.Total_BPS",
             "case1",
@@ -369,13 +369,13 @@ end
             "null",
             6,
             5,
-            "null", 
+            "null",
             7,
-            7], 
+            7],
         verboseForm = [
             "null",
             "null",
-            "null", 
+            "null",
             "null",
             "null",
             "faible",
@@ -430,13 +430,13 @@ end
             "null",
             "",
             "",
-            "null", 
+            "null",
             "",
-            ""], 
+            ""],
         verboseForm = [
             "null",
             "null",
-            "null", 
+            "null",
             "null",
             "null",
             "faible",
@@ -488,18 +488,18 @@ end
             "null",
             10,
             10,
-            "null", 
+            "null",
             11,
-            11], 
+            11],
         verboseForm = [
             "null",
             "null",
-            "null", 
             "null",
             "null",
             "null",
             "null",
-            "null", 
+            "null",
+            "null",
             "null",
             "null",
             "null",

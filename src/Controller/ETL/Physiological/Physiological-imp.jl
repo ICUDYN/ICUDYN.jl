@@ -4,17 +4,17 @@
 Computes the gender of the patient
 """
 function ETL.Physiological.computeGender(window::DataFrame)
-    res = window |> 
+    res = window |>
         n -> filter(
             r -> (
                 r.attributeDictionaryPropName == "ptDemographic_Demographic90Int.Sexe"
                 && !passmissing(isMissing)(r.terseForm)
-                ), 
-            n) |> 
+                ),
+            n) |>
         n -> n.terseForm |>
         n -> if isempty(n) return missing else (string ∘ first)(n) end |>
-        n-> if n == "1" "male" elseif n=="2" "female" else error("Unknown gender code[$n]") end 
-    
+        n-> if n == "1" "male" elseif n=="2" "female" else error("Unknown gender code[$n]") end
+
     return res
 end
 
@@ -31,11 +31,11 @@ function ETL.Physiological.computeAge(window::DataFrame)
             r -> (
                 r.attributeDictionaryPropName == "ptDemographic_patientAgeInt.ageValue"
                 && !passmissing(isMissing)(r.terseForm)
-                ), 
-            n) |> 
+                ),
+            n) |>
         n -> n.terseForm |>
         n -> if isempty(n) missing else first(n) end
-             
+
     return res
 end
 
@@ -53,12 +53,12 @@ function ETL.Physiological.computeHeight(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "ptDemographic_PtHeight.height"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int, mean(n)) end 
-    
-         
+    n -> if isempty(n) missing else round(Int, mean(n)) end
+
+
 return res
 
 end
@@ -76,12 +76,12 @@ function ETL.Physiological.computeWeight(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_ptWeightIntervention.ptWeight"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int, mean(n)) end 
-    
-         
+    n -> if isempty(n) missing else round(Int, mean(n)) end
+
+
 return res
 end
 
@@ -99,11 +99,11 @@ function ETL.Physiological.computeHeartRateVars(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_heartRateInt.heartRate"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round.([minimum(n), maximum(n),mean(n), median(n)], digits = 2) end 
-          
+    n -> if isempty(n) missing else round.([minimum(n), maximum(n),mean(n), median(n)], digits = 2) end
+
     return res
 
 end
@@ -121,13 +121,13 @@ function ETL.Physiological.computeUrineVolume(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "PtSiteCare_urineOuputInt.outputVolume"
             && !passmissing(isMissing)(r.verboseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.verboseForm
 
-    if isempty(res) 
-        return missing 
-    else 
+    if isempty(res)
+        return missing
+    else
         res = replace.(res, "ml"=>"")
         res = parse.(Int,res)
         return round(mean(res),digits=2)
@@ -148,34 +148,34 @@ function ETL.Physiological.computeArterialBp(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_arterialBPInt.mean"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n), digits = 1) end 
+    n -> if isempty(n) missing else round(mean(n), digits = 1) end
 
     bp_diastolic = window |>
     n -> filter(
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_arterialBPInt.diastolic"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n), digits = 1) end 
+    n -> if isempty(n) missing else round(mean(n), digits = 1) end
 
     bp_systolic = window |>
     n -> filter(
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_arterialBPInt.systolic"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n), digits = 1) end 
+    n -> if isempty(n) missing else round(mean(n), digits = 1) end
 
 
     return [bp_mean, bp_diastolic, bp_systolic]
-    
+
 end
 
 
@@ -185,18 +185,17 @@ end
 # Computes the temperature of the patient
 # """
 function ETL.Physiological.computeTemperature(window::DataFrame)
-    
+
     res = window |>
     n -> filter(
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_temperatureInt.temperature"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n),digits=1) end 
-    
-         
+    n -> if isempty(n) missing else round(mean(n),digits=1) end
+
 return res
 end
 
@@ -207,7 +206,7 @@ end
 # Computes the Glasgow score of the patient
 # """
 function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::Bool)
-    
+
     if any_sedative
         return 16
     else
@@ -216,10 +215,10 @@ function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::
             r -> (
                 r.attributeDictionaryPropName == "PtAssessment_GCSInt.GCSNum"
                 && !passmissing(isMissing)(r.terseForm)
-                ), 
-            n) |> 
+                ),
+            n) |>
         n -> n.terseForm |>
-        n -> if isempty(n) missing else round(Int,mean(n)) end 
+        n -> if isempty(n) missing else round(Int,mean(n)) end
         return res
     end
 
@@ -241,25 +240,25 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflu
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_GCSInt.GCSNum"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int,mean(n)) end 
+    n -> if isempty(n) missing else round(Int,mean(n)) end
     return res
     #code R :
     # NOTE: imposseible d'avoir la valeur cible
   # if (is.nan(neuro_ramsay)) {
   #   neuro_ramsay <- CONFIG$missing_value
   # } else {
-  #   
+  #
   #   if (!is.na(sedative_isoflurane) && sedative_isoflurane > 0) {
-  #     
+  #
   #     if (neuro_ramsay >= 5) {
   #       neuro_ramsay_normal = T
   #     } else {
   #       neuro_ramsay_normal = F
   #     }
-  #     
+  #
   #   } else if (isTRUE(any_sedative)) {
   #     if (neuro_ramsay >= target_score) {
   #       neuro_ramsay_normal = T
@@ -267,7 +266,7 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflu
   #       neuro_ramsay_normal = F
   #     }
   #   }
-  #   
+  #
   # }
 
 
@@ -287,10 +286,10 @@ function ETL.Physiological.computeDouleurNumValue(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_Evaluation_douleur.EV_num"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int,mean(n)) end 
+    n -> if isempty(n) missing else round(Int,mean(n)) end
     return res
 
 end
@@ -310,17 +309,17 @@ function ETL.Physiological.computeDouleurStringValue(window::DataFrame)
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_Evaluation_douleur.EV_analogique"
             && !passmissing(isMissing)(r.verboseForm)
-            ), 
-        n) |> 
-    n -> n.verboseForm |> 
+            ),
+        n) |>
+    n -> n.verboseForm |>
     n -> if isempty(n) return missing else n end |>
     n -> counter(n) |>
     # n -> max(n, key=n.get())
-    n -> collect(keys(n))[argmax(collect(values(n)))] 
-    
+    n -> collect(keys(n))[argmax(collect(values(n)))]
+
     #Pour l'instant prend la dernière occurence max apparaissant dans le dict
     return res
-    
+
 
 end
 
@@ -331,16 +330,16 @@ end
 # Computes the pain of the patient from Bps value
 # """
 function ETL.Physiological.computeDouleurBpsNumValue(window::DataFrame)
-    
+
     res = window |>
     n -> filter(
         r -> (
             r.attributeDictionaryPropName == "PtAssessment_Echelle_comportementale_douleur.Total_BPS"
             && !passmissing(isMissing)(r.terseForm)
-            ), 
-        n) |> 
+            ),
+        n) |>
     n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int,mean(n)) end 
+    n -> if isempty(n) missing else round(Int,mean(n)) end
     return res
 
 end
@@ -366,7 +365,7 @@ function ETL.Physiological.computePain(window::DataFrame)
         elseif douleurNumValue > 7
             return "high"
         # else
-        #     #do error ?   
+        #     #do error ?
         end
     end
 
@@ -391,9 +390,9 @@ function ETL.Physiological.computePain(window::DataFrame)
         elseif douleurBpsNumValue <= 9
             return "moderate"
         elseif douleurBpsNumValue > 9
-            return "high" 
+            return "high"
         # else
-        #     #do error ?  
+        #     #do error ?
         end
     end
 
