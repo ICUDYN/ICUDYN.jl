@@ -1,6 +1,3 @@
-using Core: include
-using Dates: include
-using Revise: include
 include("runtests-prerequisite.jl")
 
 @testset "Test all" begin

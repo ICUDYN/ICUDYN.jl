@@ -18,7 +18,7 @@ function ETL.preparePatientsFromRawExcelFile(
     patientsPreparedData::Vector{DataFrame} = DataFrame[]
 
     for patientCodeName in patientsCodeNames
-        srcDF = getPatientDFFromXLSX(patientCodeName)
+        srcDF = ETL.getPatientDFFromXLSX(patientCodeName)
         push!(patientsPreparedData,
               ETL.processPatientRawHistory(srcDF))
     end
@@ -30,7 +30,7 @@ function ETL.preparePatientsFromRawExcelFile(
     )
 end
 
-function ETL.getPatientDFFromXLSX(patientCodeName::String) 
+function ETL.getPatientDFFromXLSX(patientCodeName::String)
     patientsDir = ICUDYNUtil.getDataInputDir()
     patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
     isfile(patientFilename)
@@ -40,7 +40,7 @@ end
 
 function ETL.processPatientRawHistory(df::DataFrame)
     rawWindows::Vector{DataFrame} = ETL.cutPatientDF(df)
-    refinedWindows = DataFrame[]    
+    refinedWindows = DataFrame[]
     for w in rawWindows
         push!(refinedWindows,ETL.refineWindow(w))
     end
@@ -61,11 +61,11 @@ function ETL.cutPatientDF(df::DataFrame)
     window = DataFrame()
     windowFirstTime = df[1,:chartTime]
     windowEndTime = windowFirstTime + Hour(windowSize)
-    
-    # Loop 
+
+    # Loop
     for r in eachrow(df)
         if (r.chartTime >= windowEndTime)
-            
+
             # Add the current window to the list of windows
             push!(df_array,window)
 
@@ -75,7 +75,7 @@ function ETL.cutPatientDF(df::DataFrame)
             windowEndTime = windowFirstTime + Hour(windowSize)
 
         else
-                push!(window,r)            
+                push!(window,r)
         end
     end
 

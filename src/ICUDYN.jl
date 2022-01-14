@@ -26,7 +26,7 @@ module ICUDYNUtil
              addTimeToZonedDateTime, addTimeToDate, getDateOfZonedDateTime,
              getFilePathAnalyseRefactionsSerialisee,
              getFilePathAnalyseLignesSerialisee,
-             getFilePathAnalyseLignesPourJourneeExploitation
+             getFilePathAnalyseLignesPourJourneeExploitation, isMissing
 
      include("./util/utils-def.jl")
 
@@ -35,7 +35,7 @@ end
 module Model
 
     using Dates, TimeZones, UUIDs, PostgresORM
-   
+
 end
 
 
@@ -43,7 +43,7 @@ module Controller
 
     using ..ICUDYN, ..Model, ..ICUDYNUtil
     using PostgresORM, LibPQ, Dates
-   
+
     module Stay
       include("./Controller/Stay/Stay-controller-def.jl")
     end
