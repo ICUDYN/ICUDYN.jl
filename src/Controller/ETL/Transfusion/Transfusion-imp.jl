@@ -1,4 +1,4 @@
-function ETL.Transfusion.computeTransfusionParam(window::DataFrame, inverventionShortLabel::String)
+function ETL.Transfusion._computeTransfusionParam(window::DataFrame, inverventionShortLabel::String)
 
     #TODO Bapt : vérifier si c'est bien ça qu'on veut faire. En regardant le fichier excel 
     #je ne suis pas sur que le code R fasse la bonne chose ?
@@ -28,7 +28,7 @@ Computes the blood cells units
 """
 
 function ETL.Transfusion.computeBloodCellsUnits(window::DataFrame)
-    return ETL.Transfusion.computeTransfusionParam(window,"PtIntake_Culot GR")
+    return ETL.Transfusion._computeTransfusionParam(window,"PtIntake_Culot GR")
 end
 
 """
@@ -37,7 +37,7 @@ computePlatelets(window::DataFrame)
 Computes the platelets
 """
 function ETL.Transfusion.computePlatelets(window::DataFrame)
-    return ETL.Transfusion.computeTransfusionParam(window,"PtIntake_Plaquettes")
+    return ETL.Transfusion._computeTransfusionParam(window,"PtIntake_Plaquettes")
 end
 
 """
@@ -46,5 +46,5 @@ computePlasma(window::DataFrame)
 Computes the plasma
 """
 function ETL.Transfusion.computePlasma(window::DataFrame)
-    return ETL.Transfusion.computeTransfusionParam(window,"PtIntake_PFC")
+    return ETL.Transfusion._computeTransfusionParam(window,"PtIntake_PFC")
 end

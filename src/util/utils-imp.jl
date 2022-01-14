@@ -711,3 +711,21 @@ function ICUDYNUtil.exportToExcel(
     end
     return filepath
 end
+
+
+function ICUDYNUtil.getTerseFormFromWindow(window::DataFrame, attribute::String, fun)
+    res = window |>
+    n -> filter(
+        r -> (
+            r.attributeDictionaryPropName == attribute
+            && !passmissing(isMissing)(r.terseForm)
+            ),
+        n) |>
+    n -> n.terseForm |>
+    n -> if isempty(n) missing else fun(n) end
+    return res
+end
+
+function getValueOfError()
+    return "ERROR"
+end

@@ -1,6 +1,7 @@
 using .Controller.ETL
 using .Controller.ETL.Physiological
 using .Controller.ETL.Transfusion
+using .Controller.ETL.FluidBalance
 using Statistics
 using DataStructures
 # No choice...calling 'using' with in the module block does not work

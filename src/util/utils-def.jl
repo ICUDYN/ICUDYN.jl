@@ -149,3 +149,7 @@ function isMissing end
 
 function prepareDataFrameForExcel! end
 function exportToExcel end
+
+function getTerseFormFromWindow end
+
+function getValueOfError end

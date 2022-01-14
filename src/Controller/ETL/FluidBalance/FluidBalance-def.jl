@@ -1,0 +1,6 @@
+function computeVolInOut end
+function computePerfusion end
+function computeVolAndTypeVascularFilling end
+function computeMedecine end
+function computeEnteralFeeding end
+function computeParentalFeeding end

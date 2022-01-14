@@ -4,18 +4,16 @@
 Computes the gender of the patient
 """
 function ETL.Physiological.computeGender(window::DataFrame)
-    res = window |>
-        n -> filter(
-            r -> (
-                r.attributeDictionaryPropName == "ptDemographic_Demographic90Int.Sexe"
-                && !passmissing(isMissing)(r.terseForm)
-                ),
-            n) |>
-        n -> n.terseForm |>
-        n -> if isempty(n) return missing else (string ∘ first)(n) end |>
-        n-> if n == "1" "male" elseif n=="2" "female" else error("Unknown gender code[$n]") end
+    res =  ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_Demographic90Int.Sexe", (string ∘ first))
 
-    return res
+    if res == "1"
+        return "male"
+    elseif res == "2"
+        return "female"
+    else  
+        error("Unknown gender code[$res]") 
+        return ICUDYNUtil.getValueOfError()
+    end 
 end
 
 
@@ -25,18 +23,7 @@ end
 # Computes the age of the patient
 # """
 function ETL.Physiological.computeAge(window::DataFrame)
-
-    res = window |>
-        n -> filter(
-            r -> (
-                r.attributeDictionaryPropName == "ptDemographic_patientAgeInt.ageValue"
-                && !passmissing(isMissing)(r.terseForm)
-                ),
-            n) |>
-        n -> n.terseForm |>
-        n -> if isempty(n) missing else first(n) end
-
-    return res
+    return ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_patientAgeInt.ageValue", n-> first(n))
 end
 
 
@@ -47,20 +34,7 @@ end
 # Computes the height of the patient
 # """
 function ETL.Physiological.computeHeight(window::DataFrame)
-
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "ptDemographic_PtHeight.height"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int, mean(n)) end
-
-
-return res
-
+    return ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_PtHeight.height", n->round(Int,mean(n)))
 end
 
 
@@ -70,21 +44,8 @@ end
 # Computes the weight of the patient
 # """
 function ETL.Physiological.computeWeight(window::DataFrame)
-
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_ptWeightIntervention.ptWeight"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int, mean(n)) end
-
-
-return res
+    return ICUDYNUtil.getTerseFormFromWindow(window, "PtAssessment_ptWeightIntervention.ptWeight", n->round(Int,mean(n)))
 end
-
 
 
 # """
@@ -93,19 +54,10 @@ end
 # Computes the heart rate of the patient
 # """
 function ETL.Physiological.computeHeartRateVars(window::DataFrame)
-
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_heartRateInt.heartRate"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round.([minimum(n), maximum(n),mean(n), median(n)], digits = 2) end
-
-    return res
-
+    return ICUDYNUtil.getTerseFormFromWindow(
+                window,
+                "PtAssessment_heartRateInt.heartRate",
+                n->round.([minimum(n), maximum(n),mean(n), median(n)], digits = 2))
 end
 
 
@@ -115,7 +67,7 @@ end
 # Computes the urine volume of the patient
 # """
 function ETL.Physiological.computeUrineVolume(window::DataFrame)
-
+    
     res = window |>
     n -> filter(
         r -> (
@@ -123,10 +75,11 @@ function ETL.Physiological.computeUrineVolume(window::DataFrame)
             && !passmissing(isMissing)(r.verboseForm)
             ),
         n) |>
-    n -> n.verboseForm
+    n -> n.verboseForm |>
+    n -> if isempty(n) return missing else n end
 
-    if isempty(res)
-        return missing
+    if res === missing
+        return res
     else
         res = replace.(res, "ml"=>"")
         res = parse.(Int,res)
@@ -142,40 +95,11 @@ end
 # Computes the arterial parameters of the patient (diasolic, systolic and mean value)
 # """
 function ETL.Physiological.computeArterialBp(window::DataFrame)
+    bpMean = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.mean", n->round(mean(n),digits=1))
+    bpDiastolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.diastolic", n->round(mean(n),digits=1))
+    bpSysstolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.systolic", n->round(mean(n),digits=1))
 
-    bp_mean = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_arterialBPInt.mean"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n), digits = 1) end
-
-    bp_diastolic = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_arterialBPInt.diastolic"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n), digits = 1) end
-
-    bp_systolic = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_arterialBPInt.systolic"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n), digits = 1) end
-
-
-    return [bp_mean, bp_diastolic, bp_systolic]
-
+    return [bpMean, bpDiastolic, bpSysstolic]
 end
 
 
@@ -185,18 +109,7 @@ end
 # Computes the temperature of the patient
 # """
 function ETL.Physiological.computeTemperature(window::DataFrame)
-
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_temperatureInt.temperature"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(mean(n),digits=1) end
-
-return res
+    return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_temperatureInt.temperature", n->round(mean(n),digits=1))
 end
 
 
@@ -210,18 +123,8 @@ function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::
     if any_sedative
         return 16
     else
-        res = window |>
-        n -> filter(
-            r -> (
-                r.attributeDictionaryPropName == "PtAssessment_GCSInt.GCSNum"
-                && !passmissing(isMissing)(r.terseForm)
-                ),
-            n) |>
-        n -> n.terseForm |>
-        n -> if isempty(n) missing else round(Int,mean(n)) end
-        return res
+        return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
     end
-
 end
 
 
@@ -235,16 +138,9 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflu
 
 #TODO Bapt : Code R pas fini ? Fonction a discuter
     error("Implementation of this method not finished")
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_GCSInt.GCSNum"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int,mean(n)) end
-    return res
+
+    res = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
+
     #code R :
     # NOTE: imposseible d'avoir la valeur cible
   # if (is.nan(neuro_ramsay)) {
@@ -269,7 +165,7 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflu
   #
   # }
 
-
+    return res
 end
 
 
@@ -280,18 +176,7 @@ end
 # Computes the pain of the patient from numeric value
 # """
 function ETL.Physiological.computeDouleurNumValue(window::DataFrame)
-
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_Evaluation_douleur.EV_num"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int,mean(n)) end
-    return res
-
+    return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_Evaluation_douleur.EV_num", n->round(Int,mean(n)))
 end
 
 
@@ -314,7 +199,6 @@ function ETL.Physiological.computeDouleurStringValue(window::DataFrame)
     n -> n.verboseForm |>
     n -> if isempty(n) return missing else n end |>
     n -> counter(n) |>
-    # n -> max(n, key=n.get())
     n -> collect(keys(n))[argmax(collect(values(n)))]
 
     #Pour l'instant prend la dernière occurence max apparaissant dans le dict
@@ -330,18 +214,7 @@ end
 # Computes the pain of the patient from Bps value
 # """
 function ETL.Physiological.computeDouleurBpsNumValue(window::DataFrame)
-
-    res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_Echelle_comportementale_douleur.Total_BPS"
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else round(Int,mean(n)) end
-    return res
-
+    return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_Echelle_comportementale_douleur.Total_BPS", n->round(Int,mean(n)))
 end
 
 

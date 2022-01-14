@@ -1,6 +1,43 @@
 include("../../../runtests-prerequisite.jl")
 
 
+@testset "Test computeGender" begin
+
+    #
+    df = DataFrame(
+        terseForm = [
+            1,
+            "",
+            1,
+            3],
+        attributeDictionaryPropName = [
+            "case1",
+            "ptDemographic_Demographic90Int.Sexe",
+            "ptDemographic_Demographic90Int.Sexe",
+            "ptDemographic_Demographic90Int.Sexe"]
+        )
+    result = ETL.Physiological.computeGender(df)
+
+    @test result == "male"
+
+    # #
+    # df = DataFrame(
+    #     terseForm = [
+    #         1,
+    #         "",
+    #         3,
+    #         3],
+    #     attributeDictionaryPropName = [
+    #         "case1",
+    #         "ptDemographic_Demographic90Int.Sexe",
+    #         "ptDemographic_Demographic90Int.Sexe",
+    #         "ptDemographic_Demographic90Int.Sexe"]
+    #     )
+    # result = ETL.Physiological.computeGender(df)
+
+    # @test result == "ERROR" #TODO Bapt : le test ne devrait pas réussir quand même ?
+end
+
 @testset "Test computeAge" begin
 
     #

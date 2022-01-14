@@ -1,5 +1,6 @@
 module ICUDYN
 
+using Base: String
 greet() = print("Hello World!")
 
 module ICUDYNUtil
@@ -60,6 +61,9 @@ module Controller
       end
       module Transfusion
          include("Controller/ETL/Transfusion/Transfusion-def.jl")
+      end
+      module FluidBalance
+         include("Controller/ETL/FluidBalance/FluidBalance-def.jl")
       end
     end
 
