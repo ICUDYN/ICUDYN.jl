@@ -3,6 +3,8 @@
 # ################################## #
 include("./Misc/Misc-imp.jl")
 include("./Physiological/Physiological-imp.jl")
+include("./Transfusion/Transfusion-imp.jl")
+
 
 # ################################ #
 # Main functions of the ETL module #
@@ -50,7 +52,7 @@ function ETL.processPatientRawHistory(df::DataFrame)
 end
 
 function combineRefinedWindows(refinedWindows::Vector)
-
+#
 end
 
 function ETL.cutPatientDF(df::DataFrame)
@@ -92,4 +94,7 @@ function ETL.cutPatientDF(df::DataFrame)
 end #cut_patient_df
 
 function ETL.refineWindow(window::DataFrame)
+    # result = Dict{string,Any}()
+
+    #result["pulse_max"] = computePulseMax()
 end

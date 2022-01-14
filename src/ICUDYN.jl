@@ -58,6 +58,9 @@ module Controller
       module Physiological
          include("Controller/ETL/Physiological/Physiological-def.jl")
       end
+      module Transfusion
+         include("Controller/ETL/Transfusion/Transfusion-def.jl")
+      end
     end
 
 end # ENDOF Controller
