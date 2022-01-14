@@ -40,7 +40,7 @@ end
 
 function ETL.processPatientRawHistory(df::DataFrame)
     rawWindows::Vector{DataFrame} = ETL.cutPatientDF(df)
-    refinedWindows = DataFrame[]    
+    refinedWindows = DataFrame[] # ? or Dict[] or NamedTuple[]   
     for w in rawWindows
         push!(refinedWindows,ETL.refineWindow(w))
     end
@@ -50,6 +50,7 @@ function ETL.processPatientRawHistory(df::DataFrame)
 end
 
 function combineRefinedWindows(refinedWindows::Vector)
+
 end
 
 function ETL.cutPatientDF(df::DataFrame)
