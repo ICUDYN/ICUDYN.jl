@@ -24,7 +24,8 @@ module ICUDYNUtil
              addTimeToZonedDateTime, addTimeToDate, getDateOfZonedDateTime,
              getFilePathAnalyseRefactionsSerialisee,
              getFilePathAnalyseLignesSerialisee,
-             getFilePathAnalyseLignesPourJourneeExploitation, isMissing
+             getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
+             getTerseFormFromWindow, getVerboseFormFromWindow, rmAccentsAndLowercaseAndStrip
 
      include("./util/utils-def.jl")
 
@@ -64,6 +65,9 @@ module Controller
       end
       module FluidBalance
          include("Controller/ETL/FluidBalance/FluidBalance-def.jl")
+      end
+      module Dialysis
+         include("Controller/ETL/Dialysis/Dialysis-def.jl")
       end
     end
 

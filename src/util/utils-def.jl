@@ -150,6 +150,11 @@ function isMissing end
 function prepareDataFrameForExcel! end
 function exportToExcel end
 
+function getNonMissingValues end
 function getTerseFormFromWindow end
+function getVerboseFormFromWindow end
 
 function getValueOfError end
+
+function rmAccentsAndLowercaseAndStrip end
+function getMostFrequentValue end

@@ -4,6 +4,7 @@
 include("./Misc/Misc-imp.jl")
 include("./Physiological/Physiological-imp.jl")
 include("./Transfusion/Transfusion-imp.jl")
+include("./Dialysis/Dialysis-imp.jl")
 
 
 # ################################ #
@@ -42,7 +43,7 @@ end
 
 function ETL.processPatientRawHistory(df::DataFrame)
     rawWindows::Vector{DataFrame} = ETL.cutPatientDF(df)
-    refinedWindows = DataFrame[] # ? or Dict[] or NamedTuple[]   
+    refinedWindows = DataFrame[] # ? or Dict[] or NamedTuple[]
     for w in rawWindows
         push!(refinedWindows,ETL.refineWindow(w))
     end

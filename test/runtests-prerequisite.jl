@@ -3,6 +3,7 @@ Pkg.activate(".")
 using Revise
 
 using Test, Distributed
+using Statistics
 
 include("../scripts/using.jl")
 
@@ -12,6 +13,5 @@ function getPatientsDataDir_testUtil()
 end
 
 function getPatientXLSXPath_testUtil()
-    
-end
 
+end
