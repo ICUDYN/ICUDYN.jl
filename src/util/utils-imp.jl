@@ -606,7 +606,7 @@ function ICUDYNUtil.cutAt(df::DataFrame,
     slices = DataFrame[]
 
     # If there are no index, return one slice with the whole dataframe
-    if (isempty(indexes) || indexes == [1])        
+    if (isempty(indexes) || indexes == [1])
         push!(slices, df)
         return slices
     end
@@ -637,6 +637,12 @@ function ICUDYNUtil.cutAt(df::DataFrame,
 
 end
 
+function ICUDYNUtil.rmAccentsAndLowercaseAndStrip(str::String)
+    return Unicode.normalize(str,stripmark=true) |>
+           lowercase |>
+           strip |>
+           string
+end
 
 function ICUDYNUtil.isMissing(str::String)
     if isempty(str) || lowercase(str) in ["null"]
@@ -647,6 +653,10 @@ end
 
 function ICUDYNUtil.isMissing(nb::Number)
     return false
+end
+
+function ICUDYNUtil.isMissing(x::Missing)
+    return true
 end
 
 """
@@ -712,20 +722,93 @@ function ICUDYNUtil.exportToExcel(
     return filepath
 end
 
+function ICUDYNUtil.getVerboseFormFromWindow(
+    window::DataFrame,
+    attribute::String
+)
+    ICUDYNUtil.getVerboseFormFromWindow(window,attribute, missing)
+end
 
-function ICUDYNUtil.getTerseFormFromWindow(window::DataFrame, attribute::String, fun)
+function ICUDYNUtil.getNonMissingValues(
+    window::DataFrame,
+    filterColumn::Symbol,
+    filterValue::String,
+    columnOfInterest::Symbol)
+
     res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == attribute
-            && !passmissing(isMissing)(r.terseForm)
-            ),
-        n) |>
-    n -> n.terseForm |>
-    n -> if isempty(n) missing else fun(n) end
+        n -> filter(
+            r -> (r[filterColumn] == filterValue
+                  && !isMissing(r[columnOfInterest])),n) |>
+        n -> n[:,columnOfInterest]
+
     return res
 end
 
-function getValueOfError()
+function ICUDYNUtil.getNonMissingValues(
+    window::DataFrame,
+    attributeDictionaryPropNameOfInterest::String,
+    columnOfInterest::Symbol)
+
+    ICUDYNUtil.getNonMissingValues(
+        window,
+        :attributeDictionaryPropName,
+        attributeDictionaryPropNameOfInterest,
+        columnOfInterest)
+
+end
+
+function ICUDYNUtil.getVerboseFormFromWindow(
+    window::DataFrame,
+    attribute::String,
+    fun::Union{Function,Missing}
+)
+    res = window |>
+    n -> ICUDYNUtil.getNonMissingValues(df,attribute,:verboseForm) |>
+    n -> if isempty(n)
+            missing
+        else
+            if !ismissing(fun) fun(n) else n end
+        end
+    return res
+end
+
+function ICUDYNUtil.getTerseFormFromWindow(
+    window::DataFrame,
+    attribute::String
+)
+    ICUDYNUtil.getTerseFormFromWindow(window,attribute, missing)
+end
+
+function ICUDYNUtil.getTerseFormFromWindow(
+    window::DataFrame,
+    attribute::String,
+    fun::Union{Function,Missing}
+)
+    res = window |>
+    n -> ICUDYNUtil.getNonMissingValues(df,attribute,:terseForm) |>
+    n -> if isempty(n)
+            missing
+        else
+            if !ismissing(fun) fun(n) else n end
+        end
+    return res
+end
+
+function ICUDYNUtil.getValueOfError()
     return "ERROR"
+end
+
+
+function ICUDYNUtil.getMostFrequentValue(vec::Vector)
+    dict = DataStructures.counter(vec)
+    mostFrequentValue = missing
+    maxFrequency = 0
+
+    for (k,v) in Dict(dict)
+        if v > maxFrequency
+            mostFrequentValue = k
+            maxFrequency = v
+        end
+    end
+    return mostFrequentValue
 end
