@@ -5,5 +5,5 @@ include("runtests-prerequisite.jl")
     include("Controller/ETL/Physiological/runtests-Physiological.jl")
     include("Controller/ETL/Transfusion/runtests-Transfusion.jl")
     include("Controller/ETL/FluidBalance/runtests-FluidBalance.jl")
-    
+    include("Controller/ETL/Dialysis/runtests-Dialysis.jl")
 end
