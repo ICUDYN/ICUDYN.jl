@@ -13,7 +13,7 @@ function ETL.Transfusion._computeTransfusionParam(window::DataFrame, inverventio
         n -> subset(n,
         :attributeDictionaryPropName => ByRow(==("PtIntake_bloodProductInt.intakeVolume")),
         :interventionShortLabel => ByRow(contains(inverventionShortLabel)),
-        :terseForm => ByRow(!passmissing(isMissing))) |>
+        :terseForm => ByRow(!isMissing)) |>
         n -> n.terseForm |>
         n -> if isempty(n) return missing else sum(n) end
 

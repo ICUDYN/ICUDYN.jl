@@ -5,7 +5,7 @@ include("../../../runtests-prerequisite.jl")
     # Case 'intermittent dialysis'
     df = DataFrame(
         interventionLongLabel = [
-            "PtIntake_Hémodialyse séquentielle 3h",
+            "PtIntake_Hémodialyse séquentielle 30h",
             "100 ml",],
         attributeDictionaryPropName = [
             "PtIntake_peritonealDiaInt.formularyAdditiveAmount",
@@ -23,7 +23,7 @@ include("../../../runtests-prerequisite.jl")
         @test ETL.Dialysis.computeDialysisTypeAndDuration(df) == Dict(
             :type => "intermittent",
             :started => true,
-            :durationPrescribed_hours => 3
+            :durationPrescribed_hours => 30
             )
 
     # Case 'continuous dialysis'

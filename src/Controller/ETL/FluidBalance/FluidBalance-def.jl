@@ -1,6 +1,6 @@
-function computeVolInOut end
-function computePerfusion end
-function computeVolAndTypeVascularFilling end
-function computeMedecine end
-function computeEnteralFeeding end
-function computeParentalFeeding end
+function computeVolumeInOut end
+function computeVolumePerfusion end
+function computeVolumeAndTypeVascularFilling end
+function computeVolumeMedecine end
+function computeVolumeEnteralFeeding end
+function computeVolumeParentalFeeding end

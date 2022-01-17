@@ -25,7 +25,8 @@ module ICUDYNUtil
              getFilePathAnalyseRefactionsSerialisee,
              getFilePathAnalyseLignesSerialisee,
              getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
-             getTerseFormFromWindow, getVerboseFormFromWindow, rmAccentsAndLowercaseAndStrip
+             getTerseFormFromWindow, getVerboseFormFromWindow, rmAccentsAndLowercaseAndStrip,
+             getNonMissingValues
 
      include("./util/utils-def.jl")
 

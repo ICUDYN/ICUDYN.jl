@@ -17,22 +17,22 @@ function ETL.Physiological.computeGender(window::DataFrame)
 end
 
 
-# """
-#     computeAge(window::DataFrame)
+"""
+    computeAge(window::DataFrame)
 
-# Computes the age of the patient
-# """
+Computes the age of the patient
+"""
 function ETL.Physiological.computeAge(window::DataFrame)
     return ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_patientAgeInt.ageValue", n-> first(n))
 end
 
 
 
-# """
-#     computeHeight(window::DataFrame)
+"""
+    computeHeight(window::DataFrame)
 
-# Computes the height of the patient
-# """
+Computes the height of the patient
+"""
 function ETL.Physiological.computeHeight(window::DataFrame)
     return ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_PtHeight.height", n->round(Int,mean(n)))
 end
@@ -69,13 +69,8 @@ end
 function ETL.Physiological.computeUrineVolume(window::DataFrame)
     
     res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtSiteCare_urineOuputInt.outputVolume"
-            && !passmissing(isMissing)(r.verboseForm)
-            ),
-        n) |>
-    n -> n.verboseForm |>
+    n -> getNonMissingValues(n,:attributeDictionaryPropName,
+    "PtSiteCare_urineOuputInt.outputVolume", :verboseForm) |>
     n -> if isempty(n) return missing else n end
 
     if res === missing
@@ -190,20 +185,12 @@ function ETL.Physiological.computeDouleurStringValue(window::DataFrame)
     "PtAssessment_Evaluation_douleur.EV_analogique"
 
     res = window |>
-    n -> filter(
-        r -> (
-            r.attributeDictionaryPropName == "PtAssessment_Evaluation_douleur.EV_analogique"
-            && !passmissing(isMissing)(r.verboseForm)
-            ),
-        n) |>
-    n -> n.verboseForm |>
+    n -> getNonMissingValues(n, :attributeDictionaryPropName,
+            "PtAssessment_Evaluation_douleur.EV_analogique", :verboseForm) |>
     n -> if isempty(n) return missing else n end |>
-    n -> counter(n) |>
-    n -> collect(keys(n))[argmax(collect(values(n)))]
+    n -> rmAccentsAndLowercaseAndStrip |> ICUDYNUtil.getMostFrequentValue
 
-    #Pour l'instant prend la dernière occurence max apparaissant dans le dict
     return res
-
 
 end
 
@@ -247,7 +234,7 @@ function ETL.Physiological.computePain(window::DataFrame)
 
         if occursin("aucune", douleurStringValue) || occursin("faible", douleurStringValue)
             return "not_or_low"
-        elseif occursin("modérée", douleurStringValue)
+        elseif occursin("moderee", douleurStringValue)
             return "moderate"
         else
             return "high"

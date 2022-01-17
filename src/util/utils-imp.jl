@@ -801,6 +801,8 @@ end
 
 function ICUDYNUtil.getMostFrequentValue(vec::Vector)
     dict = DataStructures.counter(vec)
+
+    #alternative au code qui suit : return collect(keys(dict))[argmax(collect(values(dict)))
     mostFrequentValue = missing
     maxFrequency = 0
 

@@ -29,7 +29,7 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
         started = true
         type = "intermittent"
         if !isempty(intermittent1stCase)
-            _regex = r"(\d)+h"
+            _regex = r"(\d+)h"
             durationPrescribed_hours =
                 intermittent1stCase |>
                 n -> filter(x -> !isnothing(match(_regex,x)),n) |>
