@@ -763,7 +763,7 @@ function ICUDYNUtil.getVerboseFormFromWindow(
     fun::Union{Function,Missing}
 )
     res = window |>
-    n -> ICUDYNUtil.getNonMissingValues(df,attribute,:verboseForm) |>
+    n -> ICUDYNUtil.getNonMissingValues(window,attribute,:verboseForm) |>
     n -> if isempty(n)
             missing
         else
@@ -785,7 +785,7 @@ function ICUDYNUtil.getTerseFormFromWindow(
     fun::Union{Function,Missing}
 )
     res = window |>
-    n -> ICUDYNUtil.getNonMissingValues(df,attribute,:terseForm) |>
+    n -> ICUDYNUtil.getNonMissingValues(window,attribute,:terseForm) |>
     n -> if isempty(n)
             missing
         else
