@@ -170,7 +170,7 @@ end
 
 # Computes the pain of the patient from numeric value
 # """
-function ETL.Physiological.computeDouleurNumValue(window::DataFrame)
+function ETL.Physiological._computeDouleurNumValue(window::DataFrame)
     return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_Evaluation_douleur.EV_num", n->round(Int,mean(n)))
 end
 
@@ -181,11 +181,11 @@ end
 
 # Computes the pain of the patient from string value
 # """
-function ETL.Physiological.computeDouleurStringValue(window::DataFrame)
+function ETL.Physiological._computeDouleurStringValue(window::DataFrame)
     "PtAssessment_Evaluation_douleur.EV_analogique"
 
     res = window |>
-    n -> getNonMissingValues(n, :attributeDictionaryPropName,
+    n -> ICUDYNUtil.getNonMissingValues(n, :attributeDictionaryPropName,
             "PtAssessment_Evaluation_douleur.EV_analogique", :verboseForm) |>
     n -> if isempty(n) return missing else n end |>
     n -> rmAccentsAndLowercaseAndStrip |> ICUDYNUtil.getMostFrequentValue
@@ -200,7 +200,7 @@ end
 
 # Computes the pain of the patient from Bps value
 # """
-function ETL.Physiological.computeDouleurBpsNumValue(window::DataFrame)
+function ETL.Physiological._computeDouleurBpsNumValue(window::DataFrame)
     return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_Echelle_comportementale_douleur.Total_BPS", n->round(Int,mean(n)))
 end
 
@@ -212,9 +212,9 @@ end
 # Computes the pain of the patient
 # """
 function ETL.Physiological.computePain(window::DataFrame)
-    douleurNumValue = ETL.Physiological.computeDouleurNumValue(window)
-    douleurStringValue = ETL.Physiological.computeDouleurStringValue(window)
-    douleurBpsNumValue = ETL.Physiological.computeDouleurBpsNumValue(window)
+    douleurNumValue = ETL.Physiological._computeDouleurNumValue(window)
+    douleurStringValue = ETL.Physiological._computeDouleurStringValue(window)
+    douleurBpsNumValue = ETL.Physiological._computeDouleurBpsNumValue(window)
 
     if douleurNumValue !== missing
         println("numeric")

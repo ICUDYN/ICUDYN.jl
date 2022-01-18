@@ -51,6 +51,10 @@ function closeDBConn end
 
 function json2Entity end
 
+function getRefiningModules end
+
+function mergeResultsDictionaries! end
+
 function initialize_http_response_status_code end
 
 function sendemail end

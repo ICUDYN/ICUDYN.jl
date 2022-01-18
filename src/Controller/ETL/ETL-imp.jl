@@ -23,7 +23,7 @@ function ETL.preparePatientsFromRawExcelFile(
     patientsPreparedData::Vector{DataFrame} = DataFrame[]
 
     for patientCodeName in patientsCodeNames
-        srcDF = ETL.getPatientDFFromXLSX(patientCodeName)
+        srcDF = ETL.getPatientDFFromExcel(patientCodeName)
         push!(patientsPreparedData,
               ETL.processPatientRawHistory(srcDF))
     end
@@ -35,7 +35,7 @@ function ETL.preparePatientsFromRawExcelFile(
     )
 end
 
-function ETL.getPatientDFFromXLSX(patientCodeName::String)
+function ETL.getPatientDFFromExcel(patientCodeName::String)
     patientsDir = ICUDYNUtil.getDataInputDir()
     patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
     isfile(patientFilename)
@@ -46,16 +46,31 @@ end
 function ETL.processPatientRawHistory(df::DataFrame)
     rawWindows::Vector{DataFrame} = ETL.cutPatientDF(df)
     refinedWindows = DataFrame[] # ? or Dict[] or NamedTuple[]
-    for w in rawWindows
-        push!(refinedWindows,ETL.refineWindow(w))
+    for rawWindow in rawWindows
+        refinedWindow = ETL.initializeWindow(rawWindow)
+        push!(refinedWindows,refinedWindow)
+        ETL.refineWindow1stPass!(refinedWindow,rawWindow)
     end
 
     return combineRefinedWindows(refinedWindows)
 
 end
 
-function combineRefinedWindows(refinedWindows::Vector)
-#
+function ETL.combineRefinedWindows(refinedWindows::Vector{Dict{Symbol, Any}})
+    windowsDFs = DataFrame[]
+    for refinedWindow in (refinedWindows)
+        refinedWindowDict = Dict{Symbol,Any}()
+
+        for (_module,dict) in refinedWindow
+
+            ICUDYNUtil.mergeResultsDictionaries!(
+                refinedWindowDict, dict
+            )             
+        end
+        windowDF = DataFrame(;[Symbol(var)=>val for (var,val) in refinedWindowDict]...)
+        push!(windowsDFs,windowDF)
+    end
+    vcat(windowsDFs..., cols=:union)
 end
 
 function ETL.cutPatientDF(df::DataFrame)
@@ -96,8 +111,44 @@ function ETL.cutPatientDF(df::DataFrame)
     return df_array
 end #cut_patient_df
 
-function ETL.refineWindow(window::DataFrame)
-    # result = Dict{string,Any}()
-
-    #result["pulse_max"] = computePulseMax()
+function ETL.initializeWindow(window::DataFrame) 
+    result::Dict{Symbol,Any} = Dict()
+    return result
 end
+
+function ETL.refineWindow1stPass!(refinedWindow::Dict,window::DataFrame)    
+    for _module in ICUDYNUtil.getRefiningModules()
+        ETL.refineWindow1stPass!(refinedWindow, window,_module)
+    end    
+end
+
+function ETL.refineWindow1stPass!(refinedWindow::Dict, window::DataFrame, _module::Module)
+    moduleRes = ETL.refineWindow1stPass(window, _module)
+    ICUDYNUtil.mergeResultsDictionaries!(refinedWindow,moduleRes) 
+end
+
+function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
+    moduleRes = Dict()
+    refiningFunctions = names(_module, all=true) |> 
+        n -> filter(x -> getproperty(_module,x) isa Function && x ∉ (:eval, :include),n) |>
+        n -> filter(x -> startswith(string(x),"compute"),n)
+    
+    for f in refiningFunctions
+
+        fctResult = getfield(_module, f)(window)
+        # If the function does not return a Dict, create one
+        if !isa(fctResult,Dict)
+            varName = string(f) |> x -> replace(x,"compute" => "") |> lowercase
+            fctResult = Dict(Symbol(varName) => fctResult)
+        end
+
+        # Add the result of the function to the results of the refining module
+        ICUDYNUtil.mergeResultsDictionaries!(moduleRes,functionResult) 
+    end
+
+    return moduleRes
+end
+
+
+
+

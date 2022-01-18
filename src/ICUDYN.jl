@@ -1,6 +1,6 @@
 module ICUDYN
 
-using Base: String
+using Base: String, lowerbound
 greet() = print("Hello World!")
 
 module ICUDYNUtil

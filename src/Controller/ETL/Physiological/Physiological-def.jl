@@ -8,9 +8,9 @@ function computeArterialBp end
 function computeTemperature end
 function computeNeuroGlasgow end
 function computeNeuroRamsay end
-function computeDouleurNumValue end
-function computeDouleurStringValue end
-function computeDouleurBpsNumValue end
+function _computeDouleurNumValue end
+function _computeDouleurStringValue end
+function _computeDouleurBpsNumValue end
 function computePain end
 
 

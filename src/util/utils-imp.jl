@@ -814,3 +814,17 @@ function ICUDYNUtil.getMostFrequentValue(vec::Vector)
     end
     return mostFrequentValue
 end
+
+function ICUDYNUtil.getRefiningModules()
+    [ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Misc, ETL.Nutrition, ETL.Physiological,
+     ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
+end
+
+function ICUDYNUtil.mergeResultsDictionaries!(dict1::Dict, dict2::Dict) 
+    for (k,v) in dict2
+        if haskey(dict1,k)
+            error("Result of module refining already has key[$k]")
+        end
+        dict1[k] = v
+    end
+end

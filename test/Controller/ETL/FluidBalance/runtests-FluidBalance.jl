@@ -25,7 +25,10 @@ include("../../../runtests-prerequisite.jl")
         )
     result = ETL.FluidBalance.computeVolumeInOut(df)
 
-    @test result == [4.4,6.4]
+    @test result == Dict(
+        :volume_in => 4.4,
+        :volume_out => 6.4
+        )
 
 end
 
@@ -86,14 +89,12 @@ end
         )
     result = ETL.FluidBalance.computeVolumeAndTypeVascularFilling(df)
 
-    @test result == [3500,"PtIntake_IV Ringer (1000 ml)"]
-    #TODO Bapt : peaufiner test quand question du fichier imp résolue
+    @test result == Dict(
+        :vascular_filling_volume_in => 3500,
+        :vascular_filling_type => "NaCl, Ringer"
+        )
 
 end
-
-
-
-
 
 @testset "Test computeVolumeMedecine" begin
 
