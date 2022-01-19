@@ -644,6 +644,12 @@ function ICUDYNUtil.rmAccentsAndLowercaseAndStrip(str::String)
            string
 end
 
+function ICUDYNUtil.checkIfContainsNonStrict(hayStack::String, needle::String)
+    hayStack = ICUDYNUtil.rmAccentsAndLowercaseAndStrip(hayStack)
+    needle = ICUDYNUtil.rmAccentsAndLowercaseAndStrip(needle)
+    return contains(hayStack,needle)
+end
+
 function ICUDYNUtil.isMissing(str::String)
     if isempty(str) || lowercase(str) in ["null"]
         return true
@@ -821,10 +827,10 @@ function ICUDYNUtil.getRefiningModules()
 end
 
 function ICUDYNUtil.mergeResultsDictionaries!(
-    dict1::Dict, 
+    dict1::Dict,
     dict2::Dict
     ;keyPrefix::String = ""
-) 
+)
     for (k,v) in dict2
         k = Symbol("$keyPrefix$k")
         if haskey(dict1,k)
