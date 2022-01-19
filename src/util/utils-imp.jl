@@ -835,7 +835,7 @@ function ICUDYNUtil.mergeResultsDictionaries!(
 end
 
 
-function ICUDYNUtil.check_if_dataframes_are_equal(_new::DataFrame, _control::DataFrame)
+function ICUDYNUtil.checkIfDataframesAreEqual(_new::DataFrame, _control::DataFrame)
     # Sort the two dataframes on all columns
     sort!(_new, names(_new) |> n -> Symbol.(n))
     sort!(_control, names(_control) |> n -> Symbol.(n))

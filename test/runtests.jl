@@ -1,3 +1,4 @@
+using DataFrames: Dict
 include("runtests-prerequisite.jl")
 
 @testset "Test all" begin

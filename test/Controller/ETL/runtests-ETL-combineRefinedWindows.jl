@@ -36,8 +36,6 @@ include("../../runtests-prerequisite.jl")
     
 end
 
-DataFrame(a=[3,4],b=[3,missing]) == DataFrame(a=[3,4],b=[3,missing])
-
 @testset "Test cut_patient_df" begin
 
     # Check that event at cutting time gets into the next window
