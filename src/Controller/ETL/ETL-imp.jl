@@ -65,6 +65,7 @@ function ETL.combineRefinedWindows(refinedWindows::Vector{Dict{Symbol, Any}})
 
             ICUDYNUtil.mergeResultsDictionaries!(
                 refinedWindowDict, dict
+                ;keyPrefix = string(_module)*"_"
             )             
         end
         windowDF = DataFrame(;[Symbol(var)=>val for (var,val) in refinedWindowDict]...)

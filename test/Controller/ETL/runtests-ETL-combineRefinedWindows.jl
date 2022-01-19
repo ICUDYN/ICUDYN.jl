@@ -23,25 +23,20 @@ include("../../runtests-prerequisite.jl")
     )
 
     expected = DataFrame(
-        startTime = [DateTime("2022-01-01T14:00:00"),DateTime("2022-01-01T18:10:00"),],
-        endTime = [DateTime("2022-01-01T17:40:00"),DateTime("2022-01-01T21:40:00"),],
-        toto = [2,missing],
-        tata = [missing,"aaaa"],
+        Misc_startTime = [DateTime("2022-01-01T14:00:00"),DateTime("2022-01-01T18:10:00"),],
+        Misc_endTime = [DateTime("2022-01-01T17:40:00"),DateTime("2022-01-01T21:40:00"),],
+        Biology_toto = [2,missing],
+        Physiology_tata = [missing,"aaaa"],
     )
 
     result = ETL.combineRefinedWindows([refinedWindow1, refinedWindow2])
     println(result)
     
-    @test result[:,names(expected)] == expected[:,names(expected)] 
+    @test  ICUDYNUtil.check_if_dataframes_are_equal(result,expected)
     
 end
 
-dict = Dict(
-    :startTime => DateTime("2022-01-01T14:00:00"),
-    :endTime => DateTime("2022-01-01T17:40:00"),
-)
-DataFrame(;[Symbol(var)=>val for (var,val) in dict]...)
-
+DataFrame(a=[3,4],b=[3,missing]) == DataFrame(a=[3,4],b=[3,missing])
 
 @testset "Test cut_patient_df" begin
 

@@ -820,11 +820,40 @@ function ICUDYNUtil.getRefiningModules()
      ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
 end
 
-function ICUDYNUtil.mergeResultsDictionaries!(dict1::Dict, dict2::Dict) 
+function ICUDYNUtil.mergeResultsDictionaries!(
+    dict1::Dict, 
+    dict2::Dict
+    ;keyPrefix::String = ""
+) 
     for (k,v) in dict2
+        k = Symbol("$keyPrefix$k")
         if haskey(dict1,k)
             error("Result of module refining already has key[$k]")
         end
         dict1[k] = v
     end
+end
+
+
+function ICUDYNUtil.check_if_dataframes_are_equal(_new::DataFrame, _control::DataFrame)
+    # Sort the two dataframes on all columns
+    sort!(_new, names(_new) |> n -> Symbol.(n))
+    sort!(_control, names(_control) |> n -> Symbol.(n))
+
+    result = true
+    for _col in names(_new)
+        @info "\nChecking column[$_col]"
+        for (new_val,control_val) in zip(_new[:,_col],_control[:,_col])
+            if isa(new_val,Number) && isa(control_val,Number)
+                if !isapprox(new_val,control_val)
+                    @info "Difference in column[$_col]: new_val[$new_val] != control_val[$control_val]"
+                    result = false
+                end
+            elseif new_val !== control_val
+                @info "Difference in column[$_col]: new_val[$new_val] != control_val[$control_val]"
+                result = false
+            end
+        end
+    end
+    return result
 end
