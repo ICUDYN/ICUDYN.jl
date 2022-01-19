@@ -179,7 +179,10 @@ end
         )
     result = ETL.Physiological.computeArterialBp(df)
 
-    @test result == [82.7,74.5,117.5]
+    @test result == Dict(
+        :bpMean => 82.7,
+        :bpDiastolic => 74.5,
+        :bpSystolic => 117.5)
 end
 
 
@@ -288,7 +291,7 @@ end
             "PtAssessment_Evaluation_douleur.EV_num",
             "PtAssessment_Evaluation_douleur.EV_num"]
         )
-    result = ETL.Physiological.computeDouleurNumValue(df)
+    result = ETL.Physiological._computeDouleurNumValue(df)
 
     @test result == 3
 
@@ -307,7 +310,7 @@ end
             "PtAssessment_Evaluation_douleur.EV_num",
             "PtAssessment_Evaluation_douleur.EV_num"]
         )
-    result = ETL.Physiological.computeDouleurNumValue(df)
+    result = ETL.Physiological._computeDouleurNumValue(df)
 
     @test result === missing
 
@@ -334,7 +337,7 @@ end
             "PtAssessment_Evaluation_douleur.EV_analogique",
             "PtAssessment_Evaluation_douleur.EV_analogique"]
         )
-    result = ETL.Physiological.computeDouleurStringValue(df)
+    result = ETL.Physiological._computeDouleurStringValue(df)
 
     @test result == "faible"
 
@@ -361,7 +364,7 @@ end
             "PtAssessment_Echelle_comportementale_douleur.Total_BPS",
             "PtAssessment_Echelle_comportementale_douleur.Total_BPS"]
         )
-    result = ETL.Physiological.computeDouleurBpsNumValue(df)
+    result = ETL.Physiological._computeDouleurBpsNumValue(df)
 
     @test result == 7
 

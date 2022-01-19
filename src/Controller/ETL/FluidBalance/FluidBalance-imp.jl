@@ -43,7 +43,7 @@ function ETL.FluidBalance.computeVolumeAndTypeVascularFilling(window::DataFrame)
         n -> join(n, ", ")
 
     return Dict(
-        :vascular_filling_volume_in => in,
+        :vascular_filling_volume_in => volume,
         :vascular_filling_type => type
         )
 end

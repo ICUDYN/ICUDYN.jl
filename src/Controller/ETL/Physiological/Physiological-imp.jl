@@ -92,9 +92,13 @@ end
 function ETL.Physiological.computeArterialBp(window::DataFrame)
     bpMean = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.mean", n->round(mean(n),digits=1))
     bpDiastolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.diastolic", n->round(mean(n),digits=1))
-    bpSysstolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.systolic", n->round(mean(n),digits=1))
+    bpSystolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.systolic", n->round(mean(n),digits=1))
 
-    return [bpMean, bpDiastolic, bpSysstolic]
+    return Dict(
+        :bpMean => bpMean,
+        :bpDiastolic => bpDiastolic,
+        :bpSystolic => bpSystolic
+        )
 end
 
 
@@ -188,7 +192,7 @@ function ETL.Physiological._computeDouleurStringValue(window::DataFrame)
     n -> ICUDYNUtil.getNonMissingValues(n, :attributeDictionaryPropName,
             "PtAssessment_Evaluation_douleur.EV_analogique", :verboseForm) |>
     n -> if isempty(n) return missing else n end |>
-    n -> rmAccentsAndLowercaseAndStrip |> ICUDYNUtil.getMostFrequentValue
+    n -> rmAccentsAndLowercaseAndStrip.(n) |> ICUDYNUtil.getMostFrequentValue
 
     return res
 

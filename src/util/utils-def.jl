@@ -164,4 +164,4 @@ function rmAccentsAndLowercaseAndStrip end
 function checkIfContainsNonStrict end
 function getMostFrequentValue end
 
-function check_if_dataframes_are_equal end
+function checkIfDataframesAreEqual end

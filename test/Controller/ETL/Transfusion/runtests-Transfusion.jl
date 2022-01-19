@@ -39,5 +39,8 @@ include("../../../runtests-prerequisite.jl")
         )
     result = ETL.Transfusion.computeBloodCellsUnits(df)
 
-    @test result == [3,50]
+    @test result == Dict(
+        :redBloodCellsUnits => 3,
+        :redBloodCellsVolume => 50
+        )
 end
