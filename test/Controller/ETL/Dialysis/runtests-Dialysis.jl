@@ -111,6 +111,7 @@ end
             "toto"
             ]
         )
+
     @test ETL.Dialysis.computeDialysisWaterLoss(df) === missing
 
 end

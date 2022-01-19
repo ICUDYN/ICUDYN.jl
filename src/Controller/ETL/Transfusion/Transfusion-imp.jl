@@ -15,6 +15,7 @@ function ETL.Transfusion._computeTransfusionParam(window::DataFrame, inverventio
         :interventionShortLabel => ByRow(contains(inverventionShortLabel)),
         :terseForm => ByRow(!isMissing)) |>
         n -> n.terseForm |>
+        n -> ICUDYNUtil.convertToFloatIfPossible.(n)
         n -> if isempty(n) return missing else sum(n) end
 
     return[var1,var2]

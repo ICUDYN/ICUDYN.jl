@@ -1,5 +1,7 @@
 module ICUDYN
 
+using XLSX: isempty
+using DataFrames: Dict
 using Base: String, lowerbound
 greet() = print("Hello World!")
 
@@ -25,8 +27,8 @@ module ICUDYNUtil
              getFilePathAnalyseRefactionsSerialisee,
              getFilePathAnalyseLignesSerialisee,
              getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
-             getTerseFormFromWindow, getVerboseFormFromWindow, rmAccentsAndLowercaseAndStrip,
-             getNonMissingValues
+             getNumericValueFromWindowTerseForm, rmAccentsAndLowercaseAndStrip,
+             getNonMissingValues,convertToFloatIfPossible
 
      include("./util/utils-def.jl")
 
@@ -70,6 +72,10 @@ module Controller
       module Dialysis
          include("Controller/ETL/Dialysis/Dialysis-def.jl")
       end
+      module Ventilation end
+      module Nutrition end
+      module Prescription end
+      module Biology end
     end
 
 end # ENDOF Controller

@@ -1,14 +1,14 @@
 include("../runtests-prerequisite.jl")
 
-@testset "Test ICUDYNUtil.timeDiffInGivenUnit" begin
-   time1 = TimeZones.ZonedDateTime(DateTime("2019-10-28T02:57:00"),
-                                   TimeZones.TimeZone("Europe/Paris"))
-   time2 = TimeZones.ZonedDateTime(DateTime("2019-10-28T02:57:01.90"),
-                                   TimeZones.TimeZone("Europe/Paris"))
+# @testset "Test ICUDYNUtil.timeDiffInGivenUnit" begin
+#    time1 = TimeZones.ZonedDateTime(DateTime("2019-10-28T02:57:00"),
+#                                    TimeZones.TimeZone("Europe/Paris"))
+#    time2 = TimeZones.ZonedDateTime(DateTime("2019-10-28T02:57:01.90"),
+#                                    TimeZones.TimeZone("Europe/Paris"))
 
-  ICUDYNUtil.timeDiffInGivenUnit(time1,time2,"mill")
-  ICUDYNUtil.timeDiffInGivenUnit(time1,time2,"sec")
-end
+#   ICUDYNUtil.timeDiffInGivenUnit(time1,time2,"mill")
+#   ICUDYNUtil.timeDiffInGivenUnit(time1,time2,"sec")
+# end
 
 
 @testset "Test ICUDYNUtil.timeDiffInGivenUnit" begin
@@ -44,14 +44,9 @@ end
         "PtSiteCare_DialysisOutSiteInt.outputVolume",
         :terseForm) == [10,50]
 
-    @test ICUDYNUtil.getNonMissingValues(
-        df,
-        "PtSiteCare_DialysisOutSiteInt.outputVolume",
-        :terseForm) == [10,50]
-
 end
 
-@testset "Test ICUDYNUtil.getTerseFormFromWindow" begin
+@testset "Test ICUDYNUtil.getNumericValueFromWindowTerseForm" begin
 
     # Case with an aggregating function as last argument
     df = DataFrame(
@@ -65,7 +60,7 @@ end
             "toto"
             ]
         )
-    @test ICUDYNUtil.getTerseFormFromWindow(
+    @test ICUDYNUtil.getNumericValueFromWindowTerseForm(
         df,
         "PtSiteCare_DialysisOutSiteInt.outputVolume",
         mean) === 2.0
@@ -82,12 +77,12 @@ end
             "toto"
             ]
         )
-    @test ICUDYNUtil.getTerseFormFromWindow(
+    @test ICUDYNUtil.getNumericValueFromWindowTerseForm(
         df,
         "PtSiteCare_DialysisOutSiteInt.outputVolume",
         missing) == [0,4]
 
-    # Case with
+    # Case with no interesting value
     df = DataFrame(
         terseForm = [
             "",
@@ -97,49 +92,10 @@ end
             "toto"
             ]
         )
-    ICUDYNUtil.getTerseFormFromWindow(df,"PtSiteCare_DialysisOutSiteInt.outputVolume",mean)
-    @test ICUDYNUtil.getTerseFormFromWindow(
+    @test ICUDYNUtil.getNumericValueFromWindowTerseForm(
         df,
         "PtSiteCare_DialysisOutSiteInt.outputVolume",
-        mean) === 2.0
-
-end
-
-@testset "Test ICUDYNUtil.getVerboseFormFromWindow" begin
-
-    # Case with an aggregating function as last argument
-    df = DataFrame(
-        verboseForm = [
-            0,
-            4,
-            "100 ml",],
-        attributeDictionaryPropName = [
-            "PtSiteCare_DialysisOutSiteInt.outputVolume",
-            "PtSiteCare_DialysisOutSiteInt.outputVolume",
-            "toto"
-            ]
-        )
-    @test ICUDYNUtil.getVerboseFormFromWindow(
-        df,
-        "PtSiteCare_DialysisOutSiteInt.outputVolume",
-        mean) === 2.0
-
-    # Case with missing (i.e. no aggregating function) as last argument
-    df = DataFrame(
-        verboseForm = [
-            0,
-            4,
-            "100 ml",],
-        attributeDictionaryPropName = [
-            "PtSiteCare_DialysisOutSiteInt.outputVolume",
-            "PtSiteCare_DialysisOutSiteInt.outputVolume",
-            "toto"
-            ]
-        )
-    @test ICUDYNUtil.getVerboseFormFromWindow(
-        df,
-        "PtSiteCare_DialysisOutSiteInt.outputVolume",
-        missing) == [0,4]
+        mean) === missing
 
 end
 
@@ -150,4 +106,11 @@ end
 
 @testset "Test ICUDYNUtil.getMostFrequentValue(vec::Vector{Any})" begin
     ICUDYNUtil.getMostFrequentValue(["a","b"])
+end
+
+
+@testset "ICUDYNUtil.convertToFloatIfPossible" begin
+    ICUDYNUtil.convertToFloatIfPossible.(
+        [1,"1","null","NULL",missing,"3.3","1,1","100, 200"]
+    )
 end
