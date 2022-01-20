@@ -26,7 +26,7 @@ module ICUDYNUtil
              getFilePathAnalyseLignesSerialisee,
              getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
              getTerseFormFromWindow, getVerboseFormFromWindow, rmAccentsAndLowercaseAndStrip,
-             getNonMissingValues
+             getNonMissingValues, checkIfContainsNonStrict
 
      include("./util/utils-def.jl")
 
@@ -55,6 +55,7 @@ module Controller
 
     module ETL
     include("Controller/ETL/ETL-def.jl")
+
       module Misc
          include("Controller/ETL/Misc/Misc-def.jl")
       end
@@ -70,6 +71,10 @@ module Controller
       module Dialysis
          include("Controller/ETL/Dialysis/Dialysis-def.jl")
       end
+      module Nutrition
+        include("Controller/ETL/Nutrition/Nutrition-def.jl")
+      end
+
     end
 
 end # ENDOF Controller
