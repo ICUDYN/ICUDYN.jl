@@ -4,14 +4,20 @@
 Computes the gender of the patient
 """
 function ETL.Physiological.computeGender(window::DataFrame)
-    res =  ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_Demographic90Int.Sexe", (string ∘ first))
-
-    if res == "1"
+    res = window |>
+    n -> ICUDYNUtil.getNonMissingValues(
+        n, 
+        :attributeDictionaryPropName,
+        "ptDemographic_Demographic90Int.Sexe", 
+        :terseForm ) |>
+    n -> if isempty(n) return missing else n end |>
+    (string ∘ first) |>
+    n-> if n == "1"
         return "male"
-    elseif res == "2"
+    elseif n == "2"
         return "female"
     else  
-        error("Unknown gender code[$res]") 
+        @error "Unknown gender code[$n]"
         return ICUDYNUtil.getValueOfError()
     end 
 end
@@ -23,7 +29,10 @@ end
 Computes the age of the patient
 """
 function ETL.Physiological.computeAge(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_patientAgeInt.ageValue", n-> first(n))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window, 
+        "ptDemographic_patientAgeInt.ageValue", 
+        n-> first(n))
 end
 
 
@@ -34,7 +43,7 @@ end
 Computes the height of the patient
 """
 function ETL.Physiological.computeHeight(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window, "ptDemographic_PtHeight.height", n->round(Int,mean(n)))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "ptDemographic_PtHeight.height", n->round(Int,mean(n)))
 end
 
 
@@ -44,7 +53,7 @@ end
 # Computes the weight of the patient
 # """
 function ETL.Physiological.computeWeight(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window, "PtAssessment_ptWeightIntervention.ptWeight", n->round(Int,mean(n)))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtAssessment_ptWeightIntervention.ptWeight", n->round(Int,mean(n)))
 end
 
 
@@ -54,7 +63,7 @@ end
 # Computes the heart rate of the patient
 # """
 function ETL.Physiological.computeHeartRateVars(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
                 window,
                 "PtAssessment_heartRateInt.heartRate",
                 n->round.([minimum(n), maximum(n),mean(n), median(n)], digits = 2))
@@ -90,9 +99,9 @@ end
 # Computes the arterial parameters of the patient (diasolic, systolic and mean value)
 # """
 function ETL.Physiological.computeArterialBp(window::DataFrame)
-    bpMean = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.mean", n->round(mean(n),digits=1))
-    bpDiastolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.diastolic", n->round(mean(n),digits=1))
-    bpSystolic = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_arterialBPInt.systolic", n->round(mean(n),digits=1))
+    bpMean = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_arterialBPInt.mean", n->round(mean(n),digits=1))
+    bpDiastolic = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_arterialBPInt.diastolic", n->round(mean(n),digits=1))
+    bpSystolic = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_arterialBPInt.systolic", n->round(mean(n),digits=1))
 
     return Dict(
         :bpMean => bpMean,
@@ -108,7 +117,7 @@ end
 # Computes the temperature of the patient
 # """
 function ETL.Physiological.computeTemperature(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_temperatureInt.temperature", n->round(mean(n),digits=1))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_temperatureInt.temperature", n->round(mean(n),digits=1))
 end
 
 
@@ -122,7 +131,7 @@ function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::
     if any_sedative
         return 16
     else
-        return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
+        return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
     end
 end
 
@@ -138,7 +147,7 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflu
 #TODO Bapt : Code R pas fini ? Fonction a discuter
     error("Implementation of this method not finished")
 
-    res = ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
+    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
 
     #code R :
     # NOTE: imposseible d'avoir la valeur cible
@@ -175,7 +184,7 @@ end
 # Computes the pain of the patient from numeric value
 # """
 function ETL.Physiological._computeDouleurNumValue(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_Evaluation_douleur.EV_num", n->round(Int,mean(n)))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_Evaluation_douleur.EV_num", n->round(Int,mean(n)))
 end
 
 
@@ -205,7 +214,7 @@ end
 # Computes the pain of the patient from Bps value
 # """
 function ETL.Physiological._computeDouleurBpsNumValue(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window,"PtAssessment_Echelle_comportementale_douleur.Total_BPS", n->round(Int,mean(n)))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_Echelle_comportementale_douleur.Total_BPS", n->round(Int,mean(n)))
 end
 
 

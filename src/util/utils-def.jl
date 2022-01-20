@@ -155,8 +155,7 @@ function prepareDataFrameForExcel! end
 function exportToExcel end
 
 function getNonMissingValues end
-function getTerseFormFromWindow end
-function getVerboseFormFromWindow end
+function getNumericValueFromWindowTerseForm end
 
 function getValueOfError end
 
@@ -165,3 +164,5 @@ function checkIfContainsNonStrict end
 function getMostFrequentValue end
 
 function checkIfDataframesAreEqual end
+
+function convertToFloatIfPossible end

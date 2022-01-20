@@ -6,5 +6,9 @@ conf/*
 test/assets/patients/*
 !test/assets/patients/.gitkeep
 
+# Ignore tmp data
+tmp/*
+!tmp/.gitkeep
+
 debug-scripts/*
 !debug-scripts/.gitkeep

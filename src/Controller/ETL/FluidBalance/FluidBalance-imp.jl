@@ -1,9 +1,9 @@
 function ETL.FluidBalance.computeVolumeInOut(window::DataFrame)
-    in = ICUDYNUtil.getTerseFormFromWindow(
+    in = ICUDYNUtil.getNumericValueFromWindowTerseForm(
                         window,
                         "PtTotalBalance_Total apports (24h)",
                         n->round(sum(n),digits=1))
-    out = ICUDYNUtil.getTerseFormFromWindow(
+    out = ICUDYNUtil.getNumericValueFromWindowTerseForm(
                         window,
                         "PtTotalBalance_Total pertes (24h)",
                         n->round(sum(n),digits=1))
@@ -15,7 +15,7 @@ end
 
 
 function ETL.FluidBalance.computeVolumePerfusion(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtTotalBalance_Perfusion IV, 24h",
         n->round(sum(n), digits=1))
@@ -23,7 +23,7 @@ end
 
 
 function ETL.FluidBalance.computeVolumeAndTypeVascularFilling(window::DataFrame)
-    volume =  ICUDYNUtil.getTerseFormFromWindow(
+    volume =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtIntake_colloidsInt.intakeVolume",
         n->round(sum(n),digits=1))
@@ -50,15 +50,15 @@ end
 
 
 function ETL.FluidBalance.computeVolumeMedecine(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window, "PtTotalBalance_Médicaments, PSE et analgésie, 24h", n->round(sum(n),digits=1))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtTotalBalance_Médicaments, PSE et analgésie, 24h", n->round(sum(n),digits=1))
 end
 
 
 function ETL.FluidBalance.computeVolumeEnteralFeeding(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window, "PtTotalBalance_Apports entéraux, 24h", n->round(sum(n),digits=1))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtTotalBalance_Apports entéraux, 24h", n->round(sum(n),digits=1))
 end
 
 
 function ETL.FluidBalance.computeVolumeParentalFeeding(window::DataFrame)
-    return ICUDYNUtil.getTerseFormFromWindow(window, "PtIntake_tpnInt.intakeVolume", n->round(sum(n),digits=1))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtIntake_tpnInt.intakeVolume", n->round(sum(n),digits=1))
 end

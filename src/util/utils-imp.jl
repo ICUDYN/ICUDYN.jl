@@ -728,13 +728,6 @@ function ICUDYNUtil.exportToExcel(
     return filepath
 end
 
-function ICUDYNUtil.getVerboseFormFromWindow(
-    window::DataFrame,
-    attribute::String
-)
-    ICUDYNUtil.getVerboseFormFromWindow(window,attribute, missing)
-end
-
 function ICUDYNUtil.getNonMissingValues(
     window::DataFrame,
     filterColumn::Symbol,
@@ -750,53 +743,48 @@ function ICUDYNUtil.getNonMissingValues(
     return res
 end
 
-function ICUDYNUtil.getNonMissingValues(
-    window::DataFrame,
-    attributeDictionaryPropNameOfInterest::String,
-    columnOfInterest::Symbol)
 
-    ICUDYNUtil.getNonMissingValues(
+function ICUDYNUtil.convertToFloatIfPossible(o::Missing)
+    return missing
+end
+
+function ICUDYNUtil.convertToFloatIfPossible(o::Number)
+    return o
+end
+
+function ICUDYNUtil.convertToFloatIfPossible(o::AbstractString)
+    if ICUDYNUtil.isMissing(o)
+        return missing
+    end
+    numericWithCommaRegex = r"^\d+,\d+$"
+    if !isnothing(match(numericWithCommaRegex,strip(o)))
+        o = replace(o,"," => ".")
+    end
+
+    numericRegex = r"^\d+\.?\d*$"
+    if !isnothing(match(numericRegex,strip(o)))
+        return parse(Float64,o)
+    else
+        o
+    end
+
+end
+
+function ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    window::DataFrame,
+    attribute::String,
+    fun::Union{Function,Missing}
+)
+    res = window |>
+    n -> ICUDYNUtil.getNonMissingValues(
         window,
         :attributeDictionaryPropName,
-        attributeDictionaryPropNameOfInterest,
-        columnOfInterest)
+        attribute,
+        :terseForm) |>
+    n -> if isempty(n) return missing else n end |>
+    n -> convertToFloatIfPossible.(n) |>
+    n -> if !ismissing(fun) fun(n) else n end
 
-end
-
-function ICUDYNUtil.getVerboseFormFromWindow(
-    window::DataFrame,
-    attribute::String,
-    fun::Union{Function,Missing}
-)
-    res = window |>
-    n -> ICUDYNUtil.getNonMissingValues(window,attribute,:verboseForm) |>
-    n -> if isempty(n)
-            missing
-        else
-            if !ismissing(fun) fun(n) else n end
-        end
-    return res
-end
-
-function ICUDYNUtil.getTerseFormFromWindow(
-    window::DataFrame,
-    attribute::String
-)
-    ICUDYNUtil.getTerseFormFromWindow(window,attribute, missing)
-end
-
-function ICUDYNUtil.getTerseFormFromWindow(
-    window::DataFrame,
-    attribute::String,
-    fun::Union{Function,Missing}
-)
-    res = window |>
-    n -> ICUDYNUtil.getNonMissingValues(window,attribute,:terseForm) |>
-    n -> if isempty(n)
-            missing
-        else
-            if !ismissing(fun) fun(n) else n end
-        end
     return res
 end
 
@@ -823,12 +811,12 @@ end
 
 function ICUDYNUtil.getRefiningModules()
     [ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Misc, ETL.Nutrition, ETL.Physiological,
-     ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
+    ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
 end
 
 function ICUDYNUtil.mergeResultsDictionaries!(
-    dict1::Dict,
-    dict2::Dict
+    dict1::Dict{Symbol, Any},
+    dict2::Dict{Symbol, Any}
     ;keyPrefix::String = ""
 )
     for (k,v) in dict2
