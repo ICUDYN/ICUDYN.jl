@@ -8,5 +8,8 @@ function refineWindow2ndPass! end
 function processPatientRawHistory end
 function combineRefinedWindows end
 function enrichResultsOfRefiningModule! end
+function getRefiningFunctions end
+function get1stPassRefiningFunctions end
+function get2ndPassRefiningFunctions end
 
 # Refining functions

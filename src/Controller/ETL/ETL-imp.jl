@@ -79,7 +79,7 @@ function ETL.combineRefinedWindows(refinedWindows::Vector{Dict{Symbol, Any}})
             ICUDYNUtil.mergeResultsDictionaries!(
                 refinedWindowDict, dict
                 ;keyPrefix = string(_module)*"_"
-            )             
+            )
         end
         windowDF = DataFrame(;[Symbol(var)=>val for (var,val) in refinedWindowDict]...)
         push!(windowsDFs,windowDF)
@@ -126,49 +126,70 @@ function ETL.cutPatientDF(df::DataFrame)
     return df_array
 end #cut_patient_df
 
-function ETL.initializeWindow(window::DataFrame) 
+function ETL.initializeWindow(window::DataFrame)
     result::Dict{Symbol,Any} = Dict{Symbol,Any}()
     return result
 end
 
-function ETL.refineWindow1stPass!(refinedWindow::Dict{Symbol,Any},window::DataFrame)    
+function ETL.refineWindow1stPass!(refinedWindow::Dict{Symbol,Any},window::DataFrame)
     for _module in ICUDYNUtil.getRefiningModules()
         ETL.refineWindow1stPass!(refinedWindow, window,_module)
-    end    
+    end
 end
 
 function ETL.refineWindow1stPass!(refinedWindow::Dict{Symbol,Any}, window::DataFrame, _module::Module)
     moduleRes = ETL.refineWindow1stPass(window, _module)
-    ICUDYNUtil.mergeResultsDictionaries!(refinedWindow,moduleRes) 
+    ICUDYNUtil.mergeResultsDictionaries!(refinedWindow,moduleRes)
+end
+
+function ETL.getRefiningFunctions(_module::Module)
+
+    refiningFunctions = names(_module, all=true) |>
+        n -> map(x -> string(x) ,n) |>
+        n -> filter(x -> !startswith(x,"#") ,n) |>
+        n -> filter(x -> x ∉ ["eval","include"] ,n) |>
+        n -> filter(x -> startswith(x,"compute") ,n) |>
+        n -> Symbol.(n) |>
+        n -> getproperty.(Ref(_module),n) |>
+        n -> filter(x -> x isa Function,n) |>
+        n -> filter(x -> !isempty(methods(x)),n)
+
+    return refiningFunctions
+end
+
+function ETL.get1stPassRefiningFunctions(_module::Module)
+    ETL.getRefiningFunctions(_module) |>
+    n -> filter(x -> length(first(methods(x)).sig.parameters) == 2,n)
+end
+
+function ETL.get2ndPassRefiningFunctions(_module::Module)
+    ETL.getRefiningFunctions(_module) |>
+    n -> filter(x -> length(first(methods(x)).sig.parameters) == 3,n)
 end
 
 function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
-    moduleRes = Dict{Symbol,Any}()
-    refiningFunctions = names(_module, all=true) |> 
-        n -> filter(x -> getproperty(_module,x) isa Function && x ∉ (:eval, :include),n) |>
-        n -> filter(x -> getproperty(_module,x) |> methods |> first |> 
-                                      m -> length(m.sig.parameters) == 2 ,n) |>
-        n -> filter(x -> startswith(string(x),"compute"),n)
-    for f in refiningFunctions
-         @info "Call $_module.$f" getfield(_module, f)
-         fct = getfield(_module, f)
-         @info "typeof(window)[$(typeof(window))]" 
-         @info "typeof(fct)[$(typeof(fct))]" typeof(fct)
 
-         fctResult = fct(window)
+    moduleRes = Dict{Symbol,Any}()
+
+    # Get the 1st pass functions of the module
+    refiningFunctions = ETL.get1stPassRefiningFunctions(_module)
+
+    for fct in refiningFunctions
+        @info "Call $_module.$fct !"
+
+        fctResultTmp = fct(window)
+
         # If the function does not return a Dict, create one
-        if !isa(fctResult,Dict)
-            varName = string(f) |> x -> replace(x,"compute" => "")
-            fctResult::Dict{Symbol,Any} = Dict(Symbol(varName) => fctResult)
+        if !isa(fctResultTmp,Dict)
+            varName = string(fct) |> x -> replace(x,"compute" => "")
+            fctResult::Dict{Symbol,Any} = Dict(Symbol(varName) => fctResultTmp)
+        else
+            fctResult = fctResultTmp
         end
 
         # Add the result of the function to the results of the refining module
-        ICUDYNUtil.mergeResultsDictionaries!(moduleRes,fctResult) 
+        ICUDYNUtil.mergeResultsDictionaries!(moduleRes,fctResult)
     end
 
     return moduleRes
 end
-
-
-
-

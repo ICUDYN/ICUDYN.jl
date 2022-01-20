@@ -1,6 +1,4 @@
-using Distributed: serialize, deserialize
 include("../../runtests-prerequisite.jl")
-
 
 @testset "Test get_patient_df_from_csv" begin
 
@@ -32,11 +30,11 @@ end
         chartTime = chartTime,
         a = ones(length(chartTime))
     )
-    result = ETL.cutPatientDF(df) 
-    
+    result = ETL.cutPatientDF(df)
+
     @test length(result) == 2
     @test (result |> n -> isempty.(n) |> n -> .!(n) |> n -> all(n)) == true
-         
+
 
     # Check border case
     chartTime = [
@@ -49,8 +47,8 @@ end
         chartTime = chartTime,
         a = ones(length(chartTime))
     )
-    result = ETL.cutPatientDF(df) 
-    
+    result = ETL.cutPatientDF(df)
+
     @test length(result) == 2
     @test (result |> n -> isempty.(n) |> n -> .!(n) |> n -> all(n)) == true
 
@@ -66,70 +64,9 @@ end
         chartTime = chartTime,
         a = ones(length(chartTime))
     )
-    result = ETL.cutPatientDF(df) 
-    
+    result = ETL.cutPatientDF(df)
+
     @test length(result) == 3
     @test (result |> n -> isempty.(n) |> n -> .!(n) |> n -> all(n)) == true
-    
-end
-
-
-using Serialization
-@testset "Test CSV to excel" begin
-
-    serialize("tmp/raw_df.jld",ETL.getPatientDFFromExcel("xxx"))
-    @time ETL.getPatientDFFromExcel("xxx")
-    raw = deserialize("tmp/raw_df.jld")
-    ETL.preparePatientsFromRawExcelFile(["xxx"])
-    ETL.getPatientDFFromExcel("xxx") |> ETL.processPatientRawHistory
-    ETL.getPatientDFFromExcel("xxx") |> df -> ETL.cutPatientDF(df) |> length
-
-    raw |> ETL.processPatientRawHistory
-    firstWindow = raw |> df -> ETL.cutPatientDF(df) |> first
-
-    ETL.refineWindow1stPass(firstWindow, ETL.Misc)
-
-    _module = ETL.Misc
-    refiningFunctions = names(_module, all=true) |> 
-    n -> filter(x -> getproperty(_module,x) isa Function && x ∉ (:eval, :include),n) |>
-    n -> filter(x -> getproperty(_module,x) |> methods |> first |> 
-                                  m -> length(m.sig.parameters) == 2 ,n) |>
-    n -> filter(x -> startswith(string(x),"compute"),n)
-    for f in refiningFunctions
-        fct = getfield(_module, f)
-        fctResult = fct(firstWindow)
-        @info fctResult
-    end
-
-    getfield(ETL.Misc, :computeDischargeDisposition) |> typeof
-    getfield(ETL.Misc, :computeDischargeDisposition)(firstWindow)   
-    typeof(getfield(ETL.Misc, :computeDischargeDisposition)) 
-
-
-    refinedWindow = ETL.initializeWindow(firstWindow)
-    ETL.refineWindow1stPass!(refinedWindow,firstWindow)
-
-    refinedWindowForModule = Dict{Symbol, Any}()
-    ETL.refineWindow1stPass(firstWindow,ETL.Misc)
-
-    _module = ETL.Misc
-    names(_module, all=true) |> 
-        n -> filter(x -> getproperty(_module,x) isa Function && x ∉ (:eval, :include),n) |>
-        n -> filter(x -> getproperty(_module,x) |> methods |> first |> 
-                                      m -> length(m.sig.parameters) == 2 ,n) |>
-        n -> filter(x -> startswith(string(x),"compute"),n)
-
-        getproperty(_module,:computeDischargeDisposition) |> methods |> first |> 
-                                       m -> length(m.sig.parameters) == 2 
-
-    let 
-        refinedWindows = Vector{Dict{Symbol, Any}}()
-    for rawWindow in rawWindows
-        refinedWindow = ETL.initializeWindow(rawWindow)
-        push!(refinedWindows,refinedWindow)
-        ETL.refineWindow1stPass!(refinedWindow,rawWindow)
-    end
-        
-    end
 
 end

@@ -5,6 +5,20 @@ using DataFrames: Dict
 using Base: String, lowerbound
 greet() = print("Hello World!")
 
+function greet(name::String)
+    @info "greet $name"
+    return name
+end
+
+module Toto
+    greet() = print("Hello World!")
+
+    function greet(name::String)
+        @info "greet $name"
+        return name
+    end
+end
+
 module ICUDYNUtil
 
     using ConfParser,PostgresORM,
@@ -78,7 +92,6 @@ module Controller
       end
 
       module Ventilation end
-      module Nutrition end
       module Prescription end
       module Biology end
     end
