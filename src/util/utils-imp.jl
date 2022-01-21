@@ -644,6 +644,12 @@ function ICUDYNUtil.rmAccentsAndLowercaseAndStrip(str::String)
            string
 end
 
+function ICUDYNUtil.checkIfContainsNonStrict(hayStack::String, needle::String)
+    hayStack = ICUDYNUtil.rmAccentsAndLowercaseAndStrip(hayStack)
+    needle = ICUDYNUtil.rmAccentsAndLowercaseAndStrip(needle)
+    return contains(hayStack,needle)
+end
+
 function ICUDYNUtil.isMissing(str::String)
     if isempty(str) || lowercase(str) in ["null"]
         return true
@@ -754,7 +760,7 @@ function ICUDYNUtil.convertToFloatIfPossible(o::AbstractString)
     if !isnothing(match(numericWithCommaRegex,strip(o)))
         o = replace(o,"," => ".")
     end
-    
+
     numericRegex = r"^\d+\.?\d*$"
     if !isnothing(match(numericRegex,strip(o)))
         return parse(Float64,o)
@@ -772,9 +778,9 @@ function ICUDYNUtil.getNumericValueFromWindowTerseForm(
     res = window |>
     n -> ICUDYNUtil.getNonMissingValues(
         window,
-        :attributeDictionaryPropName, 
+        :attributeDictionaryPropName,
         attribute,
-        :terseForm) |>    
+        :terseForm) |>
     n -> if isempty(n) return missing else n end |>
     n -> convertToFloatIfPossible.(n) |>
     n -> if !ismissing(fun) fun(n) else n end
@@ -805,14 +811,14 @@ end
 
 function ICUDYNUtil.getRefiningModules()
     [ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Misc, ETL.Nutrition, ETL.Physiological,
-    ETL.Prescription, ETL.Transfusion, ETL.Ventilation] 
+    ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
 end
 
 function ICUDYNUtil.mergeResultsDictionaries!(
-    dict1::Dict{Symbol, Any}, 
+    dict1::Dict{Symbol, Any},
     dict2::Dict{Symbol, Any}
     ;keyPrefix::String = ""
-) 
+)
     for (k,v) in dict2
         k = Symbol("$keyPrefix$k")
         if haskey(dict1,k)

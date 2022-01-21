@@ -3,6 +3,7 @@ using .Controller.ETL.Physiological
 using .Controller.ETL.Transfusion
 using .Controller.ETL.FluidBalance
 using .Controller.ETL.Dialysis
+using .Controller.ETL.Ventilation
 using Statistics
 using DataStructures
 # No choice...calling 'using' with in the module block does not work

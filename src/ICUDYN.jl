@@ -5,6 +5,20 @@ using DataFrames: Dict
 using Base: String, lowerbound
 greet() = print("Hello World!")
 
+function greet(name::String)
+    @info "greet $name"
+    return name
+end
+
+module Toto
+    greet() = print("Hello World!")
+
+    function greet(name::String)
+        @info "greet $name"
+        return name
+    end
+end
+
 module ICUDYNUtil
 
     using ConfParser,PostgresORM,
@@ -28,7 +42,7 @@ module ICUDYNUtil
              getFilePathAnalyseLignesSerialisee,
              getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
              getNumericValueFromWindowTerseForm, rmAccentsAndLowercaseAndStrip,
-             getNonMissingValues,convertToFloatIfPossible
+             getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict
 
      include("./util/utils-def.jl")
 
@@ -57,6 +71,7 @@ module Controller
 
     module ETL
     include("Controller/ETL/ETL-def.jl")
+
       module Misc
          include("Controller/ETL/Misc/Misc-def.jl")
       end
@@ -75,7 +90,11 @@ module Controller
       module Ventilation
          include("Controller/ETL/Ventilation/Ventilation-def.jl")
       end
-      module Nutrition end
+      module Nutrition
+        include("Controller/ETL/Nutrition/Nutrition-def.jl")
+      end
+
+      module Ventilation end
       module Prescription end
       module Biology end
     end

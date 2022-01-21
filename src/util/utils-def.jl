@@ -160,6 +160,7 @@ function getNumericValueFromWindowTerseForm end
 function getValueOfError end
 
 function rmAccentsAndLowercaseAndStrip end
+function checkIfContainsNonStrict end
 function getMostFrequentValue end
 
 function checkIfDataframesAreEqual end
