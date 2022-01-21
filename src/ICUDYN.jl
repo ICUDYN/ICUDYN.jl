@@ -72,7 +72,9 @@ module Controller
       module Dialysis
          include("Controller/ETL/Dialysis/Dialysis-def.jl")
       end
-      module Ventilation end
+      module Ventilation
+         include("Controller/ETL/Ventilation/Ventilation-def.jl")
+      end
       module Nutrition end
       module Prescription end
       module Biology end
