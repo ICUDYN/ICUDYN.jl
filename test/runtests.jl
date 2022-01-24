@@ -10,4 +10,5 @@ include("runtests-prerequisite.jl")
     include("Controller/ETL/FluidBalance/runtests-FluidBalance.jl")
     include("Controller/ETL/Dialysis/runtests-Dialysis.jl")
     include("Controller/ETL/Ventilation/runtests-Ventilation.jl")
+    include("Controller/ETL/Biology/runtests-Biology.jl")
 end

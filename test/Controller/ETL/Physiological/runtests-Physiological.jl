@@ -121,10 +121,27 @@ end
             "PtAssessment_heartRateInt.heartRate"]
         )
     result = ETL.Physiological.computeHeartRateVars(df)
-    @test result == [65,91.72,76.74,75]
+
+    @test result == Dict(
+        :heartRateMax => 91.72,
+        :heartRateMedian => 75.0,
+        :heartRateMin => 65.0,
+        :heartRateMean => 76.74,
+    )
+
+
+    #
+    df = DataFrame(
+        terseForm = [
+            60,],
+        attributeDictionaryPropName = [
+            "blabla",]
+        )
+    result = ETL.Physiological.computeHeartRateVars(df)
+
+    @test all(ismissing.(collect(values(result))))    
+    
 end
-
-
 
 
 @testset "Test computeUrineVolume" begin

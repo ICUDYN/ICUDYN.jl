@@ -69,4 +69,66 @@ end
     @test length(result) == 3
     @test (result |> n -> isempty.(n) |> n -> .!(n) |> n -> all(n)) == true
 
+
+    chartTime = [
+            DateTime("2019-01-01T00:00:00"),
+            DateTime("2019-01-02T00:00:00"),
+            DateTime("2019-01-02T18:26:00"),
+            DateTime("2019-01-02T18:27:00"),
+            ]
+    df = DataFrame(
+        chartTime = chartTime,
+        a = ones(length(chartTime))
+    )
+    result = ETL.cutPatientDF(df)
+
+    @test length(result) == 3
+    @test (result |> n -> isempty.(n) |> n -> .!(n) |> n -> all(n)) == true
+
+end
+
+
+@testset "Test ETL.refineWindow1stPass!" begin
+
+    chartTime = [
+        DateTime("2022-01-01T14:01:00"),
+        DateTime("2022-01-01T10:00:00"),
+        DateTime("2022-01-01T11:00:00"),
+        DateTime("2022-01-01T13:59:59"),
+        DateTime("2022-01-01T14:00:00"),
+        ]
+    window = DataFrame(
+        chartTime = chartTime,
+        attributeDictionaryPropName = string.(ones(length(chartTime))),
+        interventionLongLabel = string.(ones(length(chartTime))),
+        interventionBaseLongLabel = string.(ones(length(chartTime))),
+        interventionPropName = string.(ones(length(chartTime))),
+        verboseForm = string.(ones(length(chartTime))),
+        terseForm = ones(length(chartTime)),
+        interventionShortLabel = string.(ones(length(chartTime))),
+    )
+    refinedWindow = ETL.initializeWindow(window)
+    ETL.refineWindow1stPass!(refinedWindow,window)
+
+    ETL.refineWindow1stPass!(refinedWindow,window,ETL.Misc)
+
+end
+
+@testset "Test ETL.orderColmunsOfRefinedHistory!" begin
+    df = DataFrame(
+        Misc_EndTime = [],
+        Physiological_weight = [],
+        Physiological_height = [],
+        Misc_xxxx = [],
+        Misc_StartTime = [],
+    )
+
+    @test ETL.orderColmunsOfRefinedHistory!(df) |> names == [
+        "Misc_StartTime",
+        "Misc_EndTime",
+        "Misc_xxxx",
+        "Physiological_height",
+        "Physiological_weight"
+        ]
+
 end
