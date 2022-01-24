@@ -16,7 +16,9 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
     elseif any(in(["VNI-AI", "VNI AI"]).(n))
         return "non_invasive"
     elseif any(in(["optiflow", "airvo2"]).(n))
-        return "OHD" 
+        return "OHD"
+    else
+        return missing
     end
 
      # NOTE: This means that the presence of debit O2 has precedence over the previous
@@ -36,7 +38,7 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
     if(debitO2 !== missing)
         if debitO2 == "AA"
             nonCriticalVentilType = "ambiant_air"
-            debitO2=missing
+            debitO2=0
         elseif !isnothing(match(r"\d+\.?\d*",debitO2))
             debitO2 = debitO2 |>
             n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)

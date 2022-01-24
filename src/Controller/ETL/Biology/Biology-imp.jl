@@ -1,10 +1,10 @@
 function ETL.Biology.computeBiologyVars(window::DataFrame)
 
+    dict = Dict{Symbol,Any}()
     prefiltered = window |>
-        n -> filter(x -> startswith(x,"PtLabResult_"),n) |>
-        n -> filter(x -> !isnothing(match(r"\d", x)),n)
-
-    molecules = Dict(
+        n -> filter(x -> startswith(x.attributeDictionaryPropName,"PtLabResult_"),n) |>
+        n -> filter(x -> !isnothing(match(r"\d", x.terseForm)),n)
+    molecules = Dict{Symbol,Any}(
         :lactate => r"PtLabResult_Acide lactique",
         :uric_acid => r"PtLabResult_Acide urique",
         :alat => r"PtLabResult_ALAT \(TGP\)",
@@ -62,20 +62,80 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
         :urea_urin => r"PtLabResult_Urée urinaire"
     )
 
-    # for k, v in molecules
+    for (k,v) in molecules
+        res = prefiltered |> 
+            n -> filter(x -> !isnothing(match(v, x.interventionLongLabel)),n) |>
+            n -> if length(n.terseForm)==0 return missing else n.terseForm end
         
+        
+            
 
-    # end
-        
-    
+        if res !== missing
+            print("molecule : $v")
+            print("res : $res")
+
+            _mean = res |>
+                n -> match.(r"(\d+\,?\d*)",n) |> #comma in this case
+                n -> filter(x -> !isnothing(x),n) |>
+                n -> map(x -> first(x.captures),n) |>
+                n -> String.(n) |>
+                n -> replace.(n,","=>".") |> #problem if "," because sometimes space after comma
+                n -> convertToFloatIfPossible.(n) |>
+                n -> mean(n)
+
+            println("_mean : $_mean")
+
+            dict[k] = round(_mean, digits =2)
+        end
+    end
+
+    return dict
 end
 
 
-function ETL.Biology.computeCreatinine(window::DataFrame) 
-
+function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String) 
+    
+    creatinine = getNonMissingValues(
+            window,
+            :attributeDictionaryPropName,
+            "PtLabResult_CreatinineInt.Variation",
+            :terseForm) |>
+        n -> match.(r"(\d+\.?\,?\d*)",n) |>
+        n -> filter(x -> !isnothing(x),n) |>
+        n -> map(x -> first(x.captures),n) |>
+        n -> String.(n) |>
+        n -> replace.(n, "," => ".") |>
+        n -> convertToFloatIfPossible.(n) |>
+        n-> if isempty(n) return missing else round(mean(n), digits = 2) end
+        
+    cockroftDfg = missing
+    if (gender == "male")
+        cockroftDfg = round(1.25 * weight * (140 - age) / creatinine, digits = 2)
+    else
+        cockroftDfg = round(1.25 * weight * (140 - age) / creatinine, digits = 2) * 0.84
+    end
+    
+    return Dict(
+        :creatinine => creatinine,
+        :cockroftDfg => cockroftDfg
+    )
 end
 
 
 function ETL.Biology.computeUrea(window::DataFrame)
+    bloodUrea = getNumericValueFromWindowTerseForm(
+        window,
+        "PtLabResult_serumUreaInt.serumUreaMsmt",
+        mean)
+
+    urineUrea = getNumericValueFromWindowTerseForm(
+        window,
+        "PtLabResult_Ure_urinaireInt.Ure_urinairePty",
+        mean)
+
+    return Dict(
+        :bloodUrea => bloodUrea,
+        :urineUrea => urineUrea
+    )
 
 end
