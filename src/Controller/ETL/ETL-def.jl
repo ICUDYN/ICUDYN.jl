@@ -11,5 +11,6 @@ function enrichResultsOfRefiningModule! end
 function getRefiningFunctions end
 function get1stPassRefiningFunctions end
 function get2ndPassRefiningFunctions end
+function orderColmunsOfRefinedHistory! end
 
 # Refining functions

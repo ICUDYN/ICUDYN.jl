@@ -17,9 +17,6 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
         return "non_invasive"
     elseif any(in(["optiflow", "airvo2"]).(n))
         return "OHD" 
-    else #TODO Bapt : pas sur qu'on ait besoin de ça, voir autres valeurs fichier excel comme "Epreuve"
-        @error "Unknown ventilation type code[$n]"
-        return ICUDYNUtil.getValueOfError()
     end
 
      # NOTE: This means that the presence of debit O2 has precedence over the previous
@@ -33,26 +30,27 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
     # Use the most frequent value.
     # We don't use the mean because we don't want to mix with the values  
     # from spontaneous ventilation (cf window 31 of BERGOT YVES)
-    println(debitO2)
 
     nonCriticalVentilType = missing
-    if debitO2 == "AA"
-        nonCriticalVentilType = "ambiant_air"
-        debitO2=0
-    elseif !isnothing(match(r"\d+\.?\d*",debitO2))
-        debitO2 = debitO2 |> n -> replace(n,"O2"=>"") |> strip |>  #TODO Bapt : pas de "02" sur terseForm mais sur verbose => utile ?
-        n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)
-        
-        println(debitO2)
-        if (debitO2 >= 30 )
-            criticalVentilType = "OHD"
-        else
-            nonCriticalVentilType = "spontaneous_ventilation"
+
+    if(debitO2 !== missing)
+        if debitO2 == "AA"
+            nonCriticalVentilType = "ambiant_air"
+            debitO2=missing
+        elseif !isnothing(match(r"\d+\.?\d*",debitO2))
+            debitO2 = debitO2 |>
+            n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)
+            
+            if (debitO2 >= 30 )
+                criticalVentilType = "OHD"
+            else
+                nonCriticalVentilType = "spontaneous_ventilation"
+            end
         end
     end
 
     return Dict(
-        :debitO2 => Int(debitO2),
+        :debitO2 => debitO2,
         :criticalVentilType => criticalVentilType,
         :nonCriticalVentilType => nonCriticalVentilType
     )
@@ -60,7 +58,7 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 end
 
 
-function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation
+function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFrame) 
     # PtAssessment_VentModeInt.VentModeList
     # PtAssessment_Calcul_seances_VS_sur_tube.Etat
     # PtAssessment_Calcul_seances_VS_sur_tube.Duree
@@ -74,8 +72,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation
         :attributeDictionaryPropName,
         "PtAssessment_VentModeInt.VentModeList", 
         :terseForm ) |>
-    n -> filter(x -> contains(x,"Epreuve"),n) |> 
-    if !isempty true end
+    n -> filter(x -> contains(x,"Epreuve"),n) |> !isempty
 
     unplugAttemptInvasiveVentilation = window |>
     n -> ICUDYNUtil.getNonMissingValues(
@@ -83,9 +80,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation
         :attributeDictionaryPropName,
         "PtAssessment_Calcul_seances_VS_sur_tube.Etat", 
         :terseForm ) |>
-    n -> filter(x -> contains(x,"Fin VS/tube"),n) |> 
-    if !isempty true end
-
+    n -> filter(x -> contains(x,"Fin VS/tube"),n) |> !isempty 
 
     unplugAttemptInvasiveVentilationDuration = ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
@@ -99,7 +94,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation
 
 end
 
-function ETL.Ventilation.computeRespiratoryVolumeMinute 
+function ETL.Ventilation.computeRespiratoryVolumeMinute(window::DataFrame)  
     # PtAssessment_Volume_minute_lmin.mesure
     return ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
@@ -108,7 +103,7 @@ function ETL.Ventilation.computeRespiratoryVolumeMinute
 end
 
 
-function ETL.Ventilation.computeRespiratoryRate
+function ETL.Ventilation.computeRespiratoryRate(window::DataFrame) 
     # PtAssessment_Frequence_respiratoire_par_min.mesuree
     return ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
@@ -117,7 +112,7 @@ function ETL.Ventilation.computeRespiratoryRate
 end
 
 
-function ETL.Ventilation.computeFio2
+function ETL.Ventilation.computeFio2(window::DataFrame) 
     # PtAssessment_Fraction_en_oxygene_FiO2.mesure
     return ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
@@ -126,7 +121,7 @@ function ETL.Ventilation.computeFio2
 end
 
 
-function ETL.Ventilation.computePao2OverFio2
+function ETL.Ventilation.computePao2OverFio2(window::DataFrame) 
     # PtAssessment_paO2FiO2ratioint.paO2FiO2ratiocalc
 
     pao2OverFio2 = ICUDYNUtil.getNumericValueFromWindowTerseForm(
@@ -150,7 +145,7 @@ function ETL.Ventilation.computePao2OverFio2
     )
 end
 
-function ETL.Ventilation.computePositiveExpiratoryPressure
+function ETL.Ventilation.computePositiveExpiratoryPressure(window::DataFrame) 
     # PtAssessment_Pression_positive_PEP_cmH2O.mesure
     return ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,

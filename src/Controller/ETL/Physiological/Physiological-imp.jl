@@ -63,10 +63,28 @@ end
 # Computes the heart rate of the patient
 # """
 function ETL.Physiological.computeHeartRateVars(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
-                window,
-                "PtAssessment_heartRateInt.heartRate",
-                n->round.([minimum(n), maximum(n),mean(n), median(n)], digits = 2))
+    
+    min,max,_mean,_median = window |>
+        n -> ICUDYNUtil.getNumericValueFromWindowTerseForm(
+            n,
+            "PtAssessment_heartRateInt.heartRate",
+            x -> round.([minimum(x), maximum(x),mean(x), median(x)], digits = 2)) |>
+        # Force the number of result to four
+        n -> if ismissing(n)
+                [missing, missing, missing, missing]
+             else
+                n
+             end |>
+        n -> tuple(n...)
+    
+
+    Dict(
+        :heartRateMin => min,
+        :heartRateMax => max,
+        :heartRateMean => _mean,
+        :heartRateMedian => _median
+    )
+    
 end
 
 

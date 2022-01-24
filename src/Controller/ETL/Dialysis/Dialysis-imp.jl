@@ -85,24 +85,24 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 end
 
 function ETL.Dialysis.computeDialysisMolecule(window::DataFrame)
-    return 4
-    # result = ICUDYNUtil.getNonMissingValues(
-    #     window,
-    #     :attributeDictionaryPropName,
-    #     "PtIntakeOrder_hemofiltrationOrd.formularyAdditiveUsageMat",
-    #     :verboseForm) |>
+    # return missing
+    result = ICUDYNUtil.getNonMissingValues(
+        window,
+        :attributeDictionaryPropName,
+        "PtIntakeOrder_hemofiltrationOrd.formularyAdditiveUsageMat",
+        :verboseForm) |>
 
-    # # Check that we have some rows (if not return missing)
-    # n -> if isempty(n) return missing else n end |>
+    # Check that we have some rows (if not return missing)
+    n -> if isempty(n) return missing else n end |>
 
-    # # Clean the strings for ease of comparison
-    # n -> rmAccentsAndLowercaseAndStrip.(n) |> ICUDYNUtil.getMostFrequentValue |>
-    # n -> if contains(n, r"heparin|hnf") return "heparin"
-    #      elseif contains(n, "citrate") return "citrate"
-    #      elseif contains(n, r"lovenox|hbpm") return "lovenox"
-    #      else error("Unknown dialysis molecule[$n]") end
+    # Clean the strings for ease of comparison
+    n -> rmAccentsAndLowercaseAndStrip.(n) |> ICUDYNUtil.getMostFrequentValue |>
+    n -> if contains(n, r"heparin|hnf") return "heparin"
+         elseif contains(n, "citrate") return "citrate"
+         elseif contains(n, r"lovenox|hbpm") return "lovenox"
+         else error("Unknown dialysis molecule[$n]") end
 
-    # return result
+    return result
 
 end
 

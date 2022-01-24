@@ -1,5 +1,6 @@
 module ICUDYN
 
+using LibPQ: propertynames
 using XLSX: isempty
 using DataFrames: Dict
 using Base: String, lowerbound
@@ -94,9 +95,12 @@ module Controller
         include("Controller/ETL/Nutrition/Nutrition-def.jl")
       end
 
-      module Ventilation end
+      module Biology
+         include("Controller/ETL/Biology/Biology-def.jl")
+      end
+      
       module Prescription end
-      module Biology end
+      
     end
 
 end # ENDOF Controller

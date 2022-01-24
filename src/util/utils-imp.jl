@@ -810,8 +810,8 @@ function ICUDYNUtil.getMostFrequentValue(vec::Vector)
 end
 
 function ICUDYNUtil.getRefiningModules()
-    [ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Misc, ETL.Nutrition, ETL.Physiological,
-    ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
+    [ETL.Misc, ETL.Physiological, ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Nutrition, 
+        ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
 end
 
 function ICUDYNUtil.mergeResultsDictionaries!(
