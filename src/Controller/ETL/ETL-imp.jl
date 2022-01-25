@@ -9,7 +9,7 @@ include("./FluidBalance/FluidBalance-imp.jl")
 include("./Ventilation/Ventilation-imp.jl")
 include("./Biology/Biology-imp.jl")
 include("./Prescription/Prescription-imp.jl")
-
+include("./Nutrition/Nutrition-imp.jl")
 
 
 # ################################ #
@@ -87,11 +87,11 @@ function ETL.processPatientRawHistory(df::DataFrame, expectedReturnType::DataTyp
         df =  ETL.combineRefinedWindows(refinedWindows)
         return ETL.orderColmunsOfRefinedHistory!(df)
     else
-        error("Unknown expected return type[$expectedReturnType]," 
+        error("Unknown expected return type[$expectedReturnType],"
             *" known types are: Vector{Dict}, DataFrame")
     end
 
-    
+
 
 
 end
@@ -103,9 +103,9 @@ function ETL.orderColmunsOfRefinedHistory!(df::DataFrame)
     unorderedNames = names(df) |> sort
     orderedNames = String[]
 
-    modulesBaseNames = ICUDYNUtil.getRefiningModules() |> 
-        n -> propertynames.(n) |> 
-        n -> first.(n) |> 
+    modulesBaseNames = ICUDYNUtil.getRefiningModules() |>
+        n -> propertynames.(n) |>
+        n -> first.(n) |>
         n -> string.(n)
 
     # Order by module
@@ -113,8 +113,8 @@ function ETL.orderColmunsOfRefinedHistory!(df::DataFrame)
         for colName in unorderedNames
             # If the name starts with the module name
             if startswith(lowercase(colName),"$(lowercase(m))_")
-                getindex(unorderedNames, findfirst(x -> x == colName,unorderedNames)) |>                   
-                n -> push!(orderedNames,n)                
+                getindex(unorderedNames, findfirst(x -> x == colName,unorderedNames)) |>
+                n -> push!(orderedNames,n)
             end
         end
     end
@@ -124,7 +124,7 @@ function ETL.orderColmunsOfRefinedHistory!(df::DataFrame)
     orderedNames = [firstNames...,filter(x -> x ∉ firstNames,orderedNames)...]
 
     select!(df, orderedNames)
-    
+
     @info orderedNames
 
     df
@@ -169,11 +169,11 @@ function ETL.cutPatientDF(df::DataFrame)
 
             # Create a new window
             window = DataFrame(r)
-            
-            # Look for the next window end time (in case there are holes in the history of 
+
+            # Look for the next window end time (in case there are holes in the history of
             #   the events)
-            while r.chartTime >= windowEndTime               
-                windowEndTime += Hour(windowSize) 
+            while r.chartTime >= windowEndTime
+                windowEndTime += Hour(windowSize)
             end
             windowFirstTime = windowEndTime - Hour(windowSize)
 
@@ -201,22 +201,22 @@ end
 
 function ETL.refineWindow1stPass!(refinedWindow::Dict{Module,Any},window::DataFrame)
     for _module in ICUDYNUtil.getRefiningModules()
-        refinedWindow[_module] = ETL.refineWindow1stPass(window, _module)        
+        refinedWindow[_module] = ETL.refineWindow1stPass(window, _module)
     end
 end
 
 function ETL.getRefiningFunctions(_module::Module)
 
     refiningFunctions = names(_module, all=true) |>
-        symb -> map(x -> string(x) ,symb) |> 
+        symb -> map(x -> string(x) ,symb) |>
         str -> filter(x -> !startswith(x,"#") ,str) |>
         str -> filter(x -> x ∉ ["eval","include"] ,str) |>
         str -> filter(x -> startswith(x,"compute") ,str) |>
         str -> Symbol.(str) |>
-        symb -> getproperty.(Ref(_module),symb) |> 
+        symb -> getproperty.(Ref(_module),symb) |>
         n -> filter(x -> x isa Function,n) |>
         # filter out functions that are not implemented yet
-        fct -> filter(x -> !isempty(methods(x)),fct) 
+        fct -> filter(x -> !isempty(methods(x)),fct)
 
     return refiningFunctions
 end
@@ -237,7 +237,7 @@ function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
 
     # Get the 1st pass functions of the module
     refiningFunctions = ETL.get1stPassRefiningFunctions(_module)
-    
+
     for fct in refiningFunctions
         @info "Call $_module.$fct"
 
