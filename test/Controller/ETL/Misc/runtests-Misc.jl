@@ -9,15 +9,15 @@ include("../../../runtests-prerequisite.jl")
         DateTime("2022-01-01T13:59:59"),
         DateTime("2022-01-01T14:00:00"),
         ]
-df = DataFrame(
-    chartTime = chartTime,
-    a = ones(length(chartTime))
-)
-result = ETL.Misc.computeStartTime(df)
-@test result == DateTime("2022-01-01T10:00:00")
+    df = DataFrame(
+        chartTime = chartTime,
+        a = ones(length(chartTime))
+    )
+    result = ETL.Misc.computeStartTime(df)
+    @test result == DateTime("2022-01-01T10:00:00")
 
-result = ETL.Misc.computeEndTime(df)
-@test result == DateTime("2022-01-01T14:01:00")
+    result = ETL.Misc.computeEndTime(df)
+    @test result == DateTime("2022-01-01T14:01:00")
 
 end
 

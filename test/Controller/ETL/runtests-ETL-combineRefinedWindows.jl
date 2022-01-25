@@ -3,21 +3,21 @@ include("../../runtests-prerequisite.jl")
 
 @testset "Test ETL.combineRefinedWindows" begin
 
-    refinedWindow1 = Dict{Symbol,Any}(
-        :Misc => Dict(
+    refinedWindow1 = Dict{Module,Any}(
+        ETL.Misc => Dict(
             :startTime => DateTime("2022-01-01T14:00:00"),
             :endTime => DateTime("2022-01-01T17:40:00"),
         ),
-        :Biology => Dict(
+        ETL.Biology => Dict(
             :toto => 2
         )
     )
-    refinedWindow2 = Dict{Symbol,Any}(
-        :Misc => Dict(
+    refinedWindow2 = Dict{Module,Any}(
+        ETL.Misc => Dict(
             :startTime => DateTime("2022-01-01T18:10:00"),
             :endTime => DateTime("2022-01-01T21:40:00"),
         ),
-        :Physiology => Dict(
+        ETL.Physiological => Dict(
             :tata => "aaaa"
         )
     )
@@ -26,7 +26,7 @@ include("../../runtests-prerequisite.jl")
         Misc_startTime = [DateTime("2022-01-01T14:00:00"),DateTime("2022-01-01T18:10:00"),],
         Misc_endTime = [DateTime("2022-01-01T17:40:00"),DateTime("2022-01-01T21:40:00"),],
         Biology_toto = [2,missing],
-        Physiology_tata = [missing,"aaaa"],
+        Physiological_tata = [missing,"aaaa"],
     )
 
     result = ETL.combineRefinedWindows([refinedWindow1, refinedWindow2])
