@@ -90,7 +90,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
         maximum)
 
     return Dict(
-        :unplugAttemptInvasiveVentilation => unplugAttemptInvasiveVentilationDuration,
+        :unplugAttemptInvasiveVentilation => unplugAttemptInvasiveVentilation,
         :unplugAttemptInvasiveVentilationDuration => unplugAttemptInvasiveVentilationDuration
     )
 
@@ -134,7 +134,7 @@ function ETL.Ventilation.computePao2OverFio2(window::DataFrame)
     # Hypoxemia
     hypoxemiaStatus = missing
     if pao2OverFio2 !== missing
-        if pao2OverFio2 < 100 hypoxemia_status = "severe"
+        if pao2OverFio2 < 100 hypoxemiaStatus = "severe"
         elseif 100 <= pao2OverFio2 && pao2OverFio2 < 200 hypoxemiaStatus = "moderate"
         elseif 200 <= pao2OverFio2 && pao2OverFio2 < 300 hypoxemiaStatus = "light"
         elseif 300 <= pao2OverFio2 hypoxemiaStatus = "normal" 

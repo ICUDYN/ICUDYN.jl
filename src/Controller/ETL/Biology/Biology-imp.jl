@@ -123,12 +123,12 @@ end
 
 
 function ETL.Biology.computeUrea(window::DataFrame)
-    bloodUrea = getNumericValueFromWindowTerseForm(
+    bloodUrea = ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtLabResult_serumUreaInt.serumUreaMsmt",
         mean)
 
-    urineUrea = getNumericValueFromWindowTerseForm(
+    urineUrea = ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtLabResult_Ure_urinaireInt.Ure_urinairePty",
         mean)

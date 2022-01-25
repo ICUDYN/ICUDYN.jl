@@ -1,5 +1,6 @@
 module ICUDYN
 
+using Dates: include
 using LibPQ: propertynames
 using XLSX: isempty
 using DataFrames: Dict
@@ -94,13 +95,12 @@ module Controller
       module Nutrition
         include("Controller/ETL/Nutrition/Nutrition-def.jl")
       end
-
       module Biology
          include("Controller/ETL/Biology/Biology-def.jl")
       end
-      
-      module Prescription end
-      
+      module Prescription
+         include("Controller/ETL/Prescription/Prescription-def.jl")
+      end
     end
 
 end # ENDOF Controller
