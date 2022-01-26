@@ -1,3 +1,5 @@
+include("utils-window-def.jl")
+
 function loadConf end
 
 function getConf end
@@ -15,10 +17,6 @@ function getICUDYNTempFile end
 function getETLAIntegrerDir end
 
 function blindBakeIsRequired end
-
-function getWindowSize end
-
-function getWindowUnit end
 
 """
     Renvoie le chemin du dossier contenant les fichiers zip déjà intégrés
@@ -154,11 +152,6 @@ function isMissing end
 function prepareDataFrameForExcel! end
 function exportToExcel end
 
-function getNonMissingValues end
-function getNumericValueFromWindowTerseForm end
-
-function getValueOfError end
-
 function rmAccentsAndLowercaseAndStrip end
 function checkIfContainsNonStrict end
 function getMostFrequentValue end
@@ -166,3 +159,4 @@ function getMostFrequentValue end
 function checkIfDataframesAreEqual end
 
 function convertToFloatIfPossible end
+function getValueOfError end

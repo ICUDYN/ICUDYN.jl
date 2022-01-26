@@ -1,3 +1,5 @@
+include("utils-window-imp.jl")
+
 # see ~/.julia/config/startup.jl for setting the environment variable
 function ICUDYNUtil.loadConf()::ConfParse
 
@@ -49,14 +51,6 @@ end
 
 function ICUDYNUtil.getETLDejaIntegreDir()
     getConf("etl","deja_integre")
-end
-
-function ICUDYNUtil.getWindowSize()
-    return parse(Integer,getConf("window","size"))
-end
-
-function ICUDYNUtil.getWindowUnit()
-    return parse(Integer,getConf("window","unit"))
 end
 
 function ICUDYNUtil.getETLDejaIntegreDir(nomSousDossier)
@@ -728,22 +722,6 @@ function ICUDYNUtil.exportToExcel(
     return filepath
 end
 
-function ICUDYNUtil.getNonMissingValues(
-    window::DataFrame,
-    filterColumn::Symbol,
-    filterValue::String,
-    columnOfInterest::Symbol)
-
-    res = window |>
-        n -> filter(
-            r -> (r[filterColumn] == filterValue
-                  && !isMissing(r[columnOfInterest])),n) |>
-        n -> n[:,columnOfInterest]
-
-    return res
-end
-
-
 function ICUDYNUtil.convertToFloatIfPossible(o::Missing)
     return missing
 end
@@ -770,23 +748,6 @@ function ICUDYNUtil.convertToFloatIfPossible(o::AbstractString)
 
 end
 
-function ICUDYNUtil.getNumericValueFromWindowTerseForm(
-    window::DataFrame,
-    attribute::String,
-    fun::Union{Function,Missing}
-)
-    res = window |>
-    n -> ICUDYNUtil.getNonMissingValues(
-        window,
-        :attributeDictionaryPropName,
-        attribute,
-        :terseForm) |>
-    n -> if isempty(n) return missing else n end |>
-    n -> convertToFloatIfPossible.(n) |>
-    n -> if !ismissing(fun) fun(n) else n end
-
-    return res
-end
 
 function ICUDYNUtil.getValueOfError()
     return "ERROR"

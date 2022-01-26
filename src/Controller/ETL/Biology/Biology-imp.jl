@@ -95,7 +95,7 @@ end
 
 function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String) 
     
-    creatinine = getNonMissingValues(
+    creatinine = ICUDYNUtil.getNonMissingValues(
             window,
             :attributeDictionaryPropName,
             "PtLabResult_CreatinineInt.Variation",

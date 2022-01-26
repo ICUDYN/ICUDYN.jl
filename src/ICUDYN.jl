@@ -2,9 +2,9 @@ module ICUDYN
 
 using Dates: include
 using LibPQ: propertynames
-using XLSX: isempty
+using XLSX: isempty, eachrow
 using DataFrames: Dict
-using Base: String, lowerbound
+using Base: String, lowerbound, issingletontype
 greet() = print("Hello World!")
 
 function greet(name::String)
@@ -23,7 +23,8 @@ end
 
 module ICUDYNUtil
 
-    using ConfParser,PostgresORM,
+    using Dates: include
+using ConfParser,PostgresORM,
           LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Base.StackTraces,
           Dates, TimeZones, InfoZIP
 
@@ -72,7 +73,7 @@ module Controller
     end
 
     module ETL
-    include("Controller/ETL/ETL-def.jl")
+      include("Controller/ETL/ETL-def.jl")
 
       module Misc
          include("Controller/ETL/Misc/Misc-def.jl")
@@ -101,6 +102,7 @@ module Controller
       module Prescription
          include("Controller/ETL/Prescription/Prescription-def.jl")
       end
+      
     end
 
 end # ENDOF Controller

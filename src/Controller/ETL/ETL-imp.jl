@@ -28,7 +28,7 @@ function ETL.preparePatientsFromRawExcelFile(
     for patientCodeName in patientsCodeNames
         srcDF = ETL.getPatientDFFromExcel(patientCodeName)
         push!(patientsPreparedData,
-              ETL.processPatientRawHistory(srcDF, DataFrame))
+              ETL.processPatientRawHistory(srcDF))
     end
 
     ICUDYNUtil.exportToExcel(
@@ -56,7 +56,7 @@ function ETL.getPatientDFFromExcel(patientCodeName::String)
     return df
 end
 
-function ETL.processPatientRawHistory(df::DataFrame, expectedReturnType::DataType)
+function ETL.processPatientRawHistory(df::DataFrame)
 
     # ##### #
     # Clean #
@@ -81,18 +81,21 @@ function ETL.processPatientRawHistory(df::DataFrame, expectedReturnType::DataTyp
     # ####### #
     # Combine #
     # ####### #
-    if expectedReturnType == Vector{Dict}
-        return refinedWindows
-    elseif expectedReturnType == DataFrame
-        df =  ETL.combineRefinedWindows(refinedWindows)
-        return ETL.orderColmunsOfRefinedHistory!(df)
-    else
-        error("Unknown expected return type[$expectedReturnType],"
-            *" known types are: Vector{Dict}, DataFrame")
+    df =  ETL.combineRefinedWindows(refinedWindows)
+
+    # ########### #
+    # Second pass #
+    # ########### #
+
+    # Prepare variables often needed in second pass (for performance)
+    cache = Dict{Symbol, Any}()
+
+    refinedWindows = Vector{Dict{Module, Any}}()
+    for rawWindow in rawWindows
+        refinedWindow = ETL.initializeWindow(rawWindow)
+        push!(refinedWindows,refinedWindow)
+        ETL.refineWindow2ndPass!(refinedWindow,rawWindow,df,cache)
     end
-
-
-
 
 end
 
@@ -199,12 +202,6 @@ function ETL.initializeWindow(window::DataFrame)
     return result
 end
 
-function ETL.refineWindow1stPass!(refinedWindow::Dict{Module,Any},window::DataFrame)
-    for _module in ICUDYNUtil.getRefiningModules()
-        refinedWindow[_module] = ETL.refineWindow1stPass(window, _module)
-    end
-end
-
 function ETL.getRefiningFunctions(_module::Module)
 
     refiningFunctions = names(_module, all=true) |>
@@ -231,6 +228,12 @@ function ETL.get2ndPassRefiningFunctions(_module::Module)
     n -> filter(x -> length(first(methods(x)).sig.parameters) > 2,n)
 end
 
+function ETL.refineWindow1stPass!(refinedWindow::Dict{Module,Any},window::DataFrame)
+    for _module in ICUDYNUtil.getRefiningModules()
+        refinedWindow[_module] = ETL.refineWindow1stPass(window, _module)
+    end
+end
+
 function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
 
     moduleRes = Dict{Symbol,Any}()
@@ -242,6 +245,99 @@ function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
         @info "Call $_module.$fct"
 
         fctResultTmp = fct(window)
+
+        # If the function does not return a Dict, create one
+        if !isa(fctResultTmp,Dict)
+            varName = string(fct) |> x -> replace(x,"compute" => "")
+            fctResult::Dict{Symbol,Any} = Dict(Symbol(varName) => fctResultTmp)
+        else
+            fctResult = fctResultTmp
+        end
+
+        # Add the result of the function to the results of the refining module
+        ICUDYNUtil.mergeResultsDictionaries!(moduleRes,fctResult)
+    end
+
+    return moduleRes
+end
+
+function ETL.refineWindow2ndPass!(
+    refinedWindow::Dict{Module,Any},
+    rawWindow::DataFrame,
+    refinedWindows::DataFrame,
+    cache::Dict{Symbol, Any}
+    )
+    for _module in ICUDYNUtil.getRefiningModules()
+        refinedWindow[_module] = ETL.refineWindow2ndPass(rawWindow, _module, refinedWindows)
+    end
+end
+
+function ETL.refreshCache!(cache::Dict{Symbol, Any},
+                      refinedWindows::DataFrame,
+                      currentStartTime::DateTime)
+
+    row = filter(r -> r.startTime == currentStartTime, refinedWindows) |> first
+
+    # Weight at admission (first recorded weight)
+    weightAtAdmission = ETL.getCachedVariable(:weightAtAdmission)
+    if ismissing(weightAtAdmission)
+        weightAtAdmission = ICUDYNUtil.firstNonMissingValue(:weight, refinedWindows) 
+        ETL.updateCache!(cache, :weightAtAdmission, weightAtAdmission)
+    end
+
+    # Last recorded weight
+    # if ̣̣̣̣!ismissing(row.Physiological_Weight)
+    #     ETL.updateCache!(cache, :lastWeight, row.Physiological_Weight)
+    # end   
+    
+    # Same window NorepinephrineMeanMgHeure
+    ETL.updateCache!(
+        cache, 
+        :sameWindowNorepinephrineMeanMgHeure, 
+        ICUDYNUtil.currentValue(
+            row,
+            :Prescription_NorepinephrineMeanMgHeure)
+    )
+
+end
+
+function ETL.updateCache!(cache::Dict{Symbol, Any}, varName::Symbol, value::Any)
+    cache[varName] = value
+end
+
+function ETL.getCachedVariable(cache::Dict{Symbol, Any},varName::Symbol)
+    if haskey(cache,varName)
+        return cache[varName]
+    else 
+        return missing
+    end
+end
+
+
+function ETL.refineWindow2ndPass(
+    rawWindow::DataFrame, 
+    _module::Module,
+    refinedWindows::DataFrame,
+    cache::Dict{Symbol, Any})
+
+    ETL.refreshCache!(cache)
+    
+    ETL.Prescription.computeAmineAgentsAdditionalVars(
+        rawWindow,
+        ETL.getCachedVariable(cache,:sameWindowNorepinephrineMeanMgHeure), 
+        epinephrineMeanMgHeure, 
+        dobutamineMeanGammaKgMinute,
+        ETL.getCachedVariable(cache,:weightAtAdmission))
+
+    moduleRes = Dict{Symbol,Any}()
+
+    # Get the 1st pass functions of the module
+    refiningFunctions = ETL.get2ndPassRefiningFunctions(_module)
+
+    for fct in refiningFunctions
+        @info "Call $_module.$fct"
+
+        fctResultTmp = fct(rawWindow)
 
         # If the function does not return a Dict, create one
         if !isa(fctResultTmp,Dict)

@@ -2,9 +2,109 @@ include("../../../runtests-prerequisite.jl")
 
 
 @testset "Test computePrescriptionBaseVars" begin
+df = DataFrame(
+    terseForm = [
+        15,
+        100,
+        30,
+        "",
+        200,
+        6,
+        100,
+        15,
+        200,
+        15,
+        30,
+        6,
 
-    #TODO
-    @test false
+        1000,
+        1000,
+        1,
+        600,
+        1000,
+        1,
+        600,
+        1000,
+        1,
+        "NULL",
+        1,
+        1000,
+        ],
+    attributeDictionaryPropName = [
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+        "PtMedication_dripAdmIntervention.formularyAdditiveDoseRate",
+
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        "PtMedication_formularyDiscreteDoseInt.formularyAdditiveDose",
+        ],
+    interventionLongLabel = [
+        "PtMedication_Cisatracurium. (Nimbex®) mg/h 5 mg/ml",
+        "PtMedication_PSE Propofol à 200 mg/h à 20 ml/h (500 mg/50 ml)",
+        "PtMedication_Sufentanil citrate (Sufentanil®) µg/h 5 µg/ml",
+        "PtMedication_Midazolam (Hypnovel®) mg/h 1 mg/ml",
+        "PtMedication_PSE Propofol à 200 mg/h à 20 ml/h (500 mg/50 ml)",
+        "PtMedication_Midazolam (Hypnovel®) mg/h 1 mg/ml",
+        "PtMedication_PSE Propofol à 200 mg/h à 20 ml/h (500 mg/50 ml)",
+        "PtMedication_Cisatracurium. (Nimbex®) mg/h 5 mg/ml",
+        "PtMedication_PSE Propofol à 200 mg/h à 20 ml/h (500 mg/50 ml)",
+        "PtMedication_Cisatracurium. (Nimbex®) mg/h 5 mg/ml",
+        "PtMedication_Sufentanil citrate (Sufentanil®) µg/h 5 µg/ml",
+        "PtMedication_Midazolam (Hypnovel®) mg/h 1 mg/ml",
+
+        "PtMedication_IV Paracétamol (Perfalgan®) 1000 mg (/ 6h)",
+        "PtMedication_IV Paracétamol (Perfalgan®) 1000 mg (/ 6h)",
+        "PtMedication_Ophtalmique Ac. borique (Dacudose®) 1 dose (/ 24h (matin))",
+        "PtMedication_IV Linézolide 600 mg (/ 12h (de 11h))",
+        "PtMedication_IV Paracétamol (Perfalgan®) 1000 mg (/ 6h)",
+        "PtMedication_Ophtalmique Ac. borique (Dacudose®) 1 dose (/ 24h (matin))",
+        "PtMedication_IV Linézolide 600 mg (/ 12h (de 11h))",
+        "PtMedication_IV Paracétamol (Perfalgan®) 1000 mg (/ 6h)",
+        "PtMedication_Ophtalmique Ac. borique (Dacudose®) 1 dose (/ 24h (matin))",
+        "PtMedication_IV Paracétamol (Perfalgan®) 1000 mg (/ 6h)",
+        "PtMedication_Ophtalmique Ac. borique (Dacudose®) 1 dose (/ 24h (matin))",
+        "PtMedication_IV Paracétamol (Perfalgan®) 1000 mg (/ 6h)",
+        
+
+        ]   
+    )
+
+    res = ETL.Prescription.computePrescriptionBaseVars(df)
+    println(res)
+    @test res == Dict(
+        :midazolamDrip         => 6.0,
+        :sufentanylDiscrete    => missing,
+        :sufentanylDrip        => 30.0,
+        :paracetamolDiscrete   => 1000.0,
+        :propofolDiscrete      => missing,
+        :sedative              => true,
+        :propofolDrip          => 150.0,
+        :atracuriumDrip        => 15.0,
+        :atracuriumDiscrete    => missing,
+        :paracetamolDrip       => missing,
+        :midazolamDiscrete     => missing,
+        :cisatracuriumDiscrete => missing,
+        :cisatracuriumDrip => 15.0
+    )
 end
 
 
