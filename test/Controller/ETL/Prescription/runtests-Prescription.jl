@@ -4,7 +4,7 @@ include("../../../runtests-prerequisite.jl")
 @testset "Test computePrescriptionBaseVars" begin
 df = DataFrame(
     terseForm = [
-        15,
+        "15,0",
         100,
         30,
         "",
@@ -90,7 +90,7 @@ df = DataFrame(
 
     res = ETL.Prescription.computePrescriptionBaseVars(df)
     println(res)
-    @test res == Dict(
+    @test ICUDYNUtil.checkIfDataframesAreEqual(DataFrame(res), DataFrame(Dict(
         :midazolamDrip         => 6.0,
         :sufentanylDiscrete    => missing,
         :sufentanylDrip        => 30.0,
@@ -104,7 +104,7 @@ df = DataFrame(
         :midazolamDiscrete     => missing,
         :cisatracuriumDiscrete => missing,
         :cisatracuriumDrip => 15.0
-    )
+    )))
 end
 
 

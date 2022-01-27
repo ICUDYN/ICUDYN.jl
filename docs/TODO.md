@@ -10,3 +10,8 @@ Variables sources :
 
 nutritionType : pour l'instant c'est parenteral, enteral ou missing
 Calcul des calories (KCal ou Cal?)
+
+
+## Prescription
+Drip et discrite = ?
+Antiplatelet molecules => problemes pour l'instant ?

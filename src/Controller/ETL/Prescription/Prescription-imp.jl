@@ -3,9 +3,16 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
     dict = Dict{Symbol,Any}()
     prefiltered = window |>
         n -> filter(x -> startswith(x.attributeDictionaryPropName,"PtMedication_"),n) |>
-        n -> filter(x -> isa(x.terseForm, Number), n)
+        n -> filter(x -> !isMissing(x.terseForm), n) |>
+        n -> transform!(
+            n,
+            :interventionLongLabel => ByRow(
+                x -> rmAccentsAndLowercaseAndStrip(x) => :interventionLongLabel)
+            )
 
-    println(prefiltered.terseForm)
+
+
+    println(prefiltered)
 
 
     #TODO Bapt : regex "accent insensitive" pour les molécules ?
@@ -15,119 +22,119 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         #
         # Amine agents
         #
-        :norepinephrine => r"PtMedication_Norepinephrine",
-        :epinephrine => r"PtMedication_epinephrine",
+        :norepinephrine => r"PtMedication_Norepinephrine"i,
+        :epinephrine => r"PtMedication_epinephrine"i,
         # Dobutamine is present in the data in unit gamma (i.e. micro gram) per kg per min
         :dobutamine => (
-            regex =  r"dobutamine", 
-            attributeDictionaryPropNameForDrip = r"PtMedication_dripAdmIntervention.formularyAdditiveWtDoseRate"
+            regex =  r"dobutamine"i, 
+            attributeDictionaryPropNameForDrip = r"PtMedication_dripAdmIntervention.formularyAdditiveWtDoseRate"i
             ),
     
         #
         # Sedative agents    
         #
-        :midazolam => (regex = r"midazolam", category = "sedative"),
-        :sufentanyl => (regex = r"sufenta", category = "sedative"),
-        :propofol => (regex = r"propofol", category = "sedative"),
-        :clonidine => (regex = r"clonidine", category = "sedative"),
+        :midazolam => (regex = r"midazolam"i, category = "sedative"),
+        :sufentanyl => (regex = r"sufenta"i, category = "sedative"),
+        :propofol => (regex = r"propofol"i, category = "sedative"),
+        :clonidine => (regex = r"clonidine"i, category = "sedative"),
         
         #
         # Blocking agents, Induction agents
         #
-        :cisatracurium => r"cisatracurium",
-        :atracurium => r"atracurium",
-        :rocuronium => r"rocuronium",
-        :etomidate => r"etomidate|hypnomidate",
-        :celocurine => r"celocurine",
+        :cisatracurium => r"cisatracurium"i,
+        :atracurium => r"atracurium"i,
+        :rocuronium => r"rocuronium"i,
+        :etomidate => r"etomidate|hypnomidate"i,
+        :celocurine => r"celocurine"i,
         
         #
         # Anticoagulant
         #
-        :heparine => r"eparine",
-        :enoxaparine => r"enoxaparine|lovenox",
-        :innohep => r"innohep|tinzaparine",
-        :fraxiparine => r"fraxiparine|nadroparine",
-        :fragmine => r"fragmine|dalteparine",
-        :calciparine => r"calciparine",
-        :naco => r"naco|apixaban|eliquis|pradaxa|dabigatran|xarelto|rivaroxaban",
-        :coumadine => r"coumadine|warfarine|previscan|fluindione|sintrom|acenocoumarole",
+        :heparine => r"eparine"i,
+        :enoxaparine => r"enoxaparine|lovenox"i,
+        :innohep => r"innohep|tinzaparine"i,
+        :fraxiparine => r"fraxiparine|nadroparine"i,
+        :fragmine => r"fragmine|dalteparine"i,
+        :calciparine => r"calciparine"i,
+        :naco => r"naco|apixaban|eliquis|pradaxa|dabigatran|xarelto|rivaroxaban"i,
+        :coumadine => r"coumadine|warfarine|previscan|fluindione|sintrom|acenocoumarole"i,
         
         # 
         # Antiplatelet
         #
-        :aspirine1 => r"aspirine|aspegic|kardegic|ticlid|ticlopidine", # PROBLEM
-        :aspirine2 => r"efient|prasugrel|plavix|clopidogrel|brilique|ticagrélor", # PROBLEM
+        :aspirine1 => r"aspirine|aspegic|kardegic|ticlid|ticlopidine"i, # PROBLEM
+        :aspirine2 => r"efient|prasugrel|plavix|clopidogrel|brilique|ticagrélor"i, # PROBLEM
         
         #
         # Insuline
         #
-        :insuline => r"insuline",
+        :insuline => r"insuline"i,
         
         #
         # Antibiotics
         #
-        :cefepime => r"cefepime|Axepim",
-        :amikacine => r"amikacine|amiklin",
-        :cefotaxime => r"cefotaxime|claforan",
-        :ceftazidime => r"ceftazidime|fortum",
-        :imipenem => r"imipenem|tienam",
-        :meropenem => r"meropenem|meronem",
-        :vancomycine => r"vancomycine",
-        :linezolide => r"linezolide|zyvoxid",
-        :colimycine => r"colimycine|colistine",
-        :piperacilline => r"piperacilline",
-        :tazocilline => r"tazocilline|tazobactam", # PROBLEM
-        :amoxicilline => r"amoxicilline|clamoxyl",
-        :dalacine => r"dalacine|clindamycine",
-        :ceftriaxone => r"ceftriaxone|rocephine",
-        :metronidazole => r"metronidazole|flagyl",
-        :sulfamethoxazole => r"sulfamethoxazole|bactrim|cotrimoxazole",
-        :oxacilline => r"oxacilline|bristopen",
-        :gentamicine => r"gentamicine|gentalline",
+        :cefepime => r"cefepime|Axepim"i,
+        :amikacine => r"amikacine|amiklin"i,
+        :cefotaxime => r"cefotaxime|claforan"i,
+        :ceftazidime => r"ceftazidime|fortum"i,
+        :imipenem => r"imipenem|tienam"i,
+        :meropenem => r"meropenem|meronem"i,
+        :vancomycine => r"vancomycine"i,
+        :linezolide => r"linezolide|zyvoxid"i,
+        :colimycine => r"colimycine|colistine"i,
+        :piperacilline => r"piperacilline"i,
+        :tazocilline => r"tazocilline|tazobactam"i, # PROBLEM
+        :amoxicilline => r"amoxicilline|clamoxyl"i,
+        :dalacine => r"dalacine|clindamycine"i,
+        :ceftriaxone => r"ceftriaxone|rocephine"i,
+        :metronidazole => r"metronidazole|flagyl"i,
+        :sulfamethoxazole => r"sulfamethoxazole|bactrim|cotrimoxazole"i,
+        :oxacilline => r"oxacilline|bristopen"i,
+        :gentamicine => r"gentamicine|gentalline"i,
         
         #
         # Antifungal
         #
-        :caspofungine => r"caspofungine|cancidas",
-        :voriconazole => r"voriconazole|vfend",
-        :echinocandine => r"echinocandine|mycamine|mycafungin",
-        :ambisome => r"ambisome|amphotericine",
-        :fluconazole => r"fluconazole|triflucan",
+        :caspofungine => r"caspofungine|cancidas"i,
+        :voriconazole => r"voriconazole|vfend"i,
+        :echinocandine => r"echinocandine|mycamine|mycafungin"i,
+        :ambisome => r"ambisome|amphotericine"i,
+        :fluconazole => r"fluconazole|triflucan"i,
         
         #
         # Anti-hypertensive_agent
         #
-        :urapidil => r"urapidil|eupressyl",
-        :nicardipine => r"nicardipine|loxen",
-        :labetalol => r"labetalol|trandate",
-        :risordan => r"risordan|trinitrine",
+        :urapidil => r"urapidil|eupressyl"i,
+        :nicardipine => r"nicardipine|loxen"i,
+        :labetalol => r"labetalol|trandate"i,
+        :risordan => r"risordan|trinitrine"i,
         
         #
         # Diuretic_agent
         #
-        :furosemide => r"furosemide|frusemide|lasilix",
+        :furosemide => r"furosemide|frusemide|lasilix"i,
         
         #
         # Steroids
         #
-        :steroids => r"prednisolone|prednisone|solumedrol|solupred|hydrocortisone",
-        :hydrocortisone => r"hydrocortisone|HSHC",
+        :steroids => r"prednisolone|prednisone|solumedrol|solupred|hydrocortisone"i,
+        :hydrocortisone => r"hydrocortisone|HSHC"i,
         
         #
         # Temperature_mgt_agent
         #
-        :paracetamol => r"paracetamol|dafalgan|dafalgan|efferalgan|perfalgan",
+        :paracetamol => r"paracetamol|dafalgan|dafalgan|efferalgan|perfalgan"i,
         
         #
         # Analgesic
         #
-        :morphine => r"morphine",
-        :nefopam => r"nefopam|acupan",
+        :morphine => r"morphine"i,
+        :nefopam => r"nefopam|acupan"i,
         
         #
         # Arrhythmia
         #
-        :cordarone => r"cordarone|tildiem|diltiazen|amiodarone"
+        :cordarone => r"cordarone|tildiem|diltiazen|amiodarone"i
     )
 
     for (k,v) in molecules
@@ -155,23 +162,25 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         
         moleculeDripMean = prefiltered |>
             n -> filter(x -> x.attributeDictionaryPropName == attributeDictionaryPropNameForDrip, n) |>
-            n -> filter(x -> !isnothing(match(_regex, lowercase(x.interventionLongLabel))),n) |>
+            n -> filter(x -> !isnothing(match(_regex, x.interventionLongLabel)),n) |>
             n -> if isempty(n.terseForm) return missing else n.terseForm end |>
-            # n -> ICUDYNUtil.convertToFloatIfPossible.(n) |>
+            n -> ICUDYNUtil.convertToFloatIfPossible.(n) |>
+            n -> filter(x -> x > 0,n) |>
             n -> mean(n) |>
             n -> round(n, digits = 2)
 
         moleculeDiscreteMean = prefiltered |>
             n -> filter(x -> x.attributeDictionaryPropName == attributeDictionaryPropNameForDiscrete, n) |>
-            n -> filter(x -> !isnothing(match(_regex, lowercase(x.interventionLongLabel))),n) |>
+            n -> filter(x -> !isnothing(match(_regex, x.interventionLongLabel)),n) |>
             n -> if isempty(n.terseForm) return missing else n.terseForm end |>
-            # n -> ICUDYNUtil.convertToFloatIfPossible.(n) |>
+            n -> ICUDYNUtil.convertToFloatIfPossible.(n) |>
+            n -> filter(x -> x > 0,n) |>
             n -> mean(n) |>
             n -> round(n, digits = 2)
 
         
-        moleculeDripSymbol = Symbol(String(k)*"Drip")
-        moleculeDiscreteSymbol = Symbol(String(k)*"Discrete")
+        moleculeDripSymbol = Symbol("$(k)Drip")
+        moleculeDiscreteSymbol = Symbol("$(k)Discrete")
 
         if isa(v, NamedTuple)
             if haskey(v,:category)
@@ -194,9 +203,6 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         end
     end
 
-    #TODO Bapt : est-ce qu'on enregistre le "missing discrete" de la molécule lorsqu'on a uniquement le drip ?
-    #Et vice-versa ? Dans l'état on enregistre les 2 lorsque qu'au moins un des 2 est présent, le manquant est mis à "missing"
-    
     return dict
 end
 
