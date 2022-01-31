@@ -1,6 +1,6 @@
 function ETL.Biology.computeBiologyVars(window::DataFrame)
 
-    dict = Dict{Symbol,Any}()
+    dict = RefiningFunctionResult()
     prefiltered = window |>
         n -> filter(x -> startswith(x.attributeDictionaryPropName,"PtLabResult_"),n) |>
         n -> filter(x -> !isnothing(match(r"\d", x.terseForm)),n)
@@ -71,8 +71,6 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
             
 
         if res !== missing
-            print("molecule : $v")
-            print("res : $res")
 
             _mean = res |>
                 n -> match.(r"(\d+\,?\d*)",n) |> #comma in this case
@@ -82,8 +80,6 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
                 n -> replace.(n,","=>".") |> #problem if "," because sometimes space after comma
                 n -> convertToFloatIfPossible.(n) |>
                 n -> mean(n)
-
-            println("_mean : $_mean")
 
             dict[k] = round(_mean, digits =2)
         end

@@ -776,10 +776,11 @@ function ICUDYNUtil.getRefiningModules()
 end
 
 function ICUDYNUtil.mergeResultsDictionaries!(
-    dict1::Dict{Symbol, Any},
-    dict2::Dict{Symbol, Any}
+    dict1::Dict{Symbol, <:Any},
+    dict2::Dict{Symbol, <:Any}
     ;keyPrefix::String = ""
 )
+
     for (k,v) in dict2
         k = Symbol("$keyPrefix$k")
         if haskey(dict1,k)

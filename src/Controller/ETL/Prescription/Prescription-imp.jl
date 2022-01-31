@@ -1,6 +1,6 @@
 function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
     
-    dict = Dict{Symbol,Any}()
+    dict = RefiningFunctionResult()
     prefiltered = window |>
         n -> filter(x -> startswith(x.attributeDictionaryPropName,"PtMedication_"),n) |>
         n -> filter(x -> !isMissing(x.terseForm), n) |>
@@ -9,10 +9,6 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
             :interventionLongLabel => ByRow(
                 x -> rmAccentsAndLowercaseAndStrip(x) => :interventionLongLabel)
             )
-
-
-
-    println(prefiltered)
 
 
     #TODO Bapt : regex "accent insensitive" pour les molécules ?
@@ -207,7 +203,6 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
 end
 
 function ETL.Prescription.computeAmineAgentsAdditionalVars(
-    window::DataFrame,
     norepinephrineMeanMgHeure, 
     epinephrineMeanMgHeure, 
     dobutamineMeanGammaKgMinute,
@@ -217,38 +212,30 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
     norepinephrineMeanGammaKgMinute = epinephrineMeanGammaKgMinute = missing
     amineAgent = false
 
-    if !ismissing(weightAtAdmission) && isa(weightAtAdmission, Number)
+    if !ismissing(weightAtAdmission)
         
         #Norepinephrine
-        if !ismissing(norepinephrineMeanMgHeure) && isa(norepinephrineMeanMgHeure, Number)
+        if !ismissing(norepinephrineMeanMgHeure)
             norepinephrineMeanGammaKgMinute = round((norepinephrineMeanMgHeure * 1000 / weightAtAdmission / 60), digits=2)
-            println("norepinephrineMeanGammaKgMinute : $norepinephrineMeanGammaKgMinute")
             
             if norepinephrineMeanGammaKgMinute < 0.5
-                println("LOW")
                 norepinephrineStatus = "LOW"
             elseif 0.5 <= norepinephrineMeanGammaKgMinute && norepinephrineMeanGammaKgMinute < 1
-                println("HIGH")
                 norepinephrineStatus = "HIGH"
             elseif 1 <= norepinephrineMeanGammaKgMinute
-                println("VERY HIGH")
                 norepinephrineStatus = "VERY_HIGH"
             end
         end
         
         #Epinephrine
-        if !ismissing(epinephrineMeanMgHeure) && isa(epinephrineMeanMgHeure, Number)            
+        if !ismissing(epinephrineMeanMgHeure)           
             epinephrineMeanGammaKgMinute = round((epinephrineMeanMgHeure * 1000 / weightAtAdmission / 60), digits = 2)
-            println("epinephrineMeanGammaKgMinute : $epinephrineMeanGammaKgMinute")
             
             if epinephrineMeanGammaKgMinute < 0.5
-                println("LOW")
                 epinephrineStatus = "LOW"
             elseif 0.5 <= epinephrineMeanGammaKgMinute && epinephrineMeanGammaKgMinute < 1
-                println("HIGH")
                 epinephrineStatus = "HIGH"
             elseif 1 <= epinephrineMeanGammaKgMinute
-                println("VERY HIGH")
                 epinephrineStatus = "VERY_HIGH"
             end
         end
@@ -258,12 +245,10 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
     # Dobutamine
     #
     # NOTE: The variable is already present in the data in unit gamma (i.e. micro gram) per kg per min
-    if !ismissing(dobutamineMeanGammaKgMinute) && isa(dobutamineMeanGammaKgMinute, Number)
+    if !ismissing(dobutamineMeanGammaKgMinute)
         if dobutamineMeanGammaKgMinute < 10
-            println("LOW")
             dobutamineStatus = "LOW"
         elseif 10 <= dobutamineMeanGammaKgMinute
-            println("HIGH")
             dobutamineStatus = "HIGH"
         end
     end
@@ -273,7 +258,6 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
     if (!ismissing(norepinephrineMeanMgHeure)
         && !ismissing(epinephrineMeanMgHeure)
         && !ismissing(dobutamineMeanGammaKgMinute))
-        println("amineAgent : true")
         
         amineAgent = true
     end

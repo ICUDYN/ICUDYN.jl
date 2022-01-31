@@ -8,8 +8,8 @@ function ETL.FluidBalance.computeVolumeInOut(window::DataFrame)
                         "PtTotalBalance_Total pertes (24h)",
                         n->round(sum(n),digits=1))
     return Dict(
-        :volume_in => in,
-        :volume_out => out
+        :volumeIn => in,
+        :volumeOut => out
         )
 end
 
@@ -43,8 +43,8 @@ function ETL.FluidBalance.computeVolumeAndTypeVascularFilling(window::DataFrame)
         n -> join(n, ", ")
 
     return Dict(
-        :vascular_filling_volume_in => volume,
-        :vascular_filling_type => type
+        :vascularFillingVolumeIn => volume,
+        :vascularFillingType => type
         )
 end
 

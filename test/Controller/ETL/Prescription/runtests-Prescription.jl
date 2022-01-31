@@ -110,14 +110,12 @@ end
 
 @testset "Test computeAmineAgentsAdditionalVars" begin
 
-    df = DataFrame()
     norepinephrineMeanMgHeure = 3
     epinephrineMeanMgHeure = 2
     dobutamineMeanGammaKgMinute = 20
     weightAtAdmission = 70
 
     res = ETL.Prescription.computeAmineAgentsAdditionalVars(
-        df,
         norepinephrineMeanMgHeure,
         epinephrineMeanMgHeure,
         dobutamineMeanGammaKgMinute, 

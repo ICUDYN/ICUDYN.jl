@@ -89,8 +89,13 @@ function ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window::DataFrame)
         n -> round(n;digits = 2)
 
     # If any of the two enteral volume is not missing and superior to zero
-    if (any(.!ismissing.([enteralVolMegareal,enteralVolSondalis]))
-        && any([enteralVolMegareal,enteralVolSondalis] .> 0))
+    if (any(
+            .!ismissing.([enteralVolMegareal,enteralVolSondalis])
+            )
+        && any(
+            filter(x -> !ismissing(x),[enteralVolMegareal,enteralVolSondalis])
+            .> 0)
+        )
 
         enteralFeeding = true
 

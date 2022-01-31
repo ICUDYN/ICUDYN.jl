@@ -5,7 +5,6 @@ function initializeWindow end
 function refineWindow1stPass! end
 function refineWindow1stPass end
 function refineWindow2ndPass! end
-function refineWindow2ndPass end
 function processPatientRawHistory end
 function combineRefinedWindows end
 function enrichResultsOfRefiningModule! end
@@ -16,3 +15,5 @@ function orderColmunsOfRefinedHistory! end
 function updateCache! end
 function getCachedVariable end
 function refreshCache! end
+function enrichModuleResultWithFunctionResult! end
+function enrichWindowModulesResultsWith2ndPassFunctionResult! end

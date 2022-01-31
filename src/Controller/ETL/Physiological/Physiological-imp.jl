@@ -144,9 +144,9 @@ end
 
 # Computes the Glasgow score of the patient
 # """
-function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, any_sedative::Bool)
+function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, anySedative::Bool)
 
-    if any_sedative
+    if anySedative
         return 16
     else
         return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
@@ -160,7 +160,7 @@ end
 
 # Computes the Ramsay score of the patient
 # """
-function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedative_isoflurane, target_score, any_sedative)
+function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedativeIsoflurane, targetScore, anySedative)
 
 #TODO Bapt : Code R pas fini ? Fonction a discuter
     error("Implementation of this method not finished")

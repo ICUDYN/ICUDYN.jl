@@ -26,8 +26,8 @@ include("../../../runtests-prerequisite.jl")
     result = ETL.FluidBalance.computeVolumeInOut(df)
 
     @test result == Dict(
-        :volume_in => 4.4,
-        :volume_out => 6.4
+        :volumeIn => 4.4,
+        :volumeOut => 6.4
         )
 
 end
@@ -90,8 +90,8 @@ end
     result = ETL.FluidBalance.computeVolumeAndTypeVascularFilling(df)
 
     @test result == Dict(
-        :vascular_filling_volume_in => 3500,
-        :vascular_filling_type => "NaCl, Ringer"
+        :vascularFillingVolumeIn => 3500,
+        :vascularFillingType => "NaCl, Ringer"
         )
 
 end

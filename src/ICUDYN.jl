@@ -1,10 +1,5 @@
 module ICUDYN
 
-using Dates: include
-using LibPQ: propertynames
-using XLSX: isempty, eachrow
-using DataFrames: Dict
-using Base: String, lowerbound, issingletontype
 greet() = print("Hello World!")
 
 function greet(name::String)
@@ -21,10 +16,13 @@ module Toto
     end
 end
 
+module Model
+   include("Model-protected/ETL-aliases.jl")
+end
+
 module ICUDYNUtil
 
-    using Dates: include
-using ConfParser,PostgresORM,
+   using ConfParser,PostgresORM,
           LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Base.StackTraces,
           Dates, TimeZones, InfoZIP
 
@@ -45,7 +43,10 @@ using ConfParser,PostgresORM,
              getFilePathAnalyseLignesSerialisee,
              getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
              getNumericValueFromWindowTerseForm, rmAccentsAndLowercaseAndStrip,
-             getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict
+             getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict,
+             firstNonMissingValue, sameWindowValue, closestNonMissingValue, 
+             closestNonMissingValueInCurrentOrPreviousWindows,
+             closestNonMissingValueInCurrentOrNextWindows 
 
      include("./util/utils-def.jl")
 
