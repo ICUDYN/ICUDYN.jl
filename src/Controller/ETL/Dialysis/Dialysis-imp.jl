@@ -76,7 +76,7 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 
 
 
-    return Dict(
+    return RefiningFunctionResult(
         :started => started,
         :type => type,
         :durationPrescribed_hours => durationPrescribed_hours
@@ -85,8 +85,8 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 end
 
 function ETL.Dialysis.computeDialysisMolecule(window::DataFrame)
-    # return missing
-    result = ICUDYNUtil.getNonMissingValues(
+  
+    res = ICUDYNUtil.getNonMissingValues(
         window,
         :attributeDictionaryPropName,
         "PtIntakeOrder_hemofiltrationOrd.formularyAdditiveUsageMat",
@@ -102,13 +102,13 @@ function ETL.Dialysis.computeDialysisMolecule(window::DataFrame)
          elseif contains(n, r"lovenox|hbpm") return "lovenox"
          else error("Unknown dialysis molecule[$n]") end
 
-    return result
+    return RefiningFunctionResult(:dialysisMolecule => res)
 
 end
 
 function ETL.Dialysis.computeDialysisWaterLoss(window::DataFrame)
 
-    ICUDYNUtil.getNonMissingValues(
+    res = ICUDYNUtil.getNonMissingValues(
         window,
         :attributeDictionaryPropName,
         "PtSiteCare_DialysisOutSiteInt.outputVolume",
@@ -121,5 +121,7 @@ function ETL.Dialysis.computeDialysisWaterLoss(window::DataFrame)
     n -> map(x -> match(r"(\d*)",x).captures |> first |> n -> parse(Int,n),
              n) |>
     mean
+
+    return RefiningFunctionResult(:dialysisWaterLoss => res)
 
 end

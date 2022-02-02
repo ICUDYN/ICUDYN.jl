@@ -125,7 +125,7 @@ function ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window::DataFrame)
     # ###################### #
     # Return the result dict #
     # ###################### #
-    return Dict(
+    return RefiningFunctionResult(
         :parenteralFeeding => parenteralFeeding,
         :parenteralVolume => parenteralVolume,
         :parenteralCalories => parenteralCalories,

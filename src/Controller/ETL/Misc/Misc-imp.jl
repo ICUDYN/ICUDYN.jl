@@ -1,11 +1,15 @@
 using .Controller.ETL
 
 function ETL.Misc.computeStartTime(window::DataFrame)
-    return(minimum(window.chartTime))
+    res = minimum(window.chartTime)
+
+    return RefiningFunctionResult(:startTime => res)
 end
 
 function ETL.Misc.computeEndTime(window::DataFrame)
-    return(maximum(window.chartTime))
+    res = maximum(window.chartTime)
+
+    return RefiningFunctionResult(:endTime => res)
 end
 
 
@@ -19,6 +23,7 @@ function ETL.Misc.computeDischargeDisposition(window::DataFrame)
         n -> getNonMissingValues(n, :attributeDictionaryPropName,
                 "V_Census_dischargeDisposition", :terseForm) |>
         n -> if isempty(n) missing else first(n) end
-    return res
+
+    return RefiningFunctionResult(:dischargeDisposition => res)
 
 end

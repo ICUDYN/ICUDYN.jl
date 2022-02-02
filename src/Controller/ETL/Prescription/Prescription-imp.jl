@@ -263,7 +263,7 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
     end
 
 
-    return Dict(
+    return RefiningFunctionResult(
         :norepinephrineStatus => norepinephrineStatus,
         :norepinephrineMeanGammaKgMinute => norepinephrineMeanGammaKgMinute,
         :epinephrineStatus => epinephrineStatus,
@@ -308,7 +308,7 @@ function ETL.Prescription.computeSedativeAgentsOtherVars(window::DataFrame)
         n->round(mean(n), digits = 2))
 
 
-    return Dict(
+    return RefiningFunctionResult(
         :isofluraneExpiratoryFractionMean => isofluraneExpiratoryFractionMean,
         :isofluraneStatus => isofluraneStatus,
         :anacondaDebitMean => anacondaDebitMean

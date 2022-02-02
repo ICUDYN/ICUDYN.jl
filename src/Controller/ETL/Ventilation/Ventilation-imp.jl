@@ -51,7 +51,7 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
         end
     end
 
-    return Dict(
+    return RefiningFunctionResult(
         :debitO2 => debitO2,
         :criticalVentilType => criticalVentilType,
         :nonCriticalVentilType => nonCriticalVentilType
@@ -61,9 +61,6 @@ end
 
 
 function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFrame) 
-    # PtAssessment_VentModeInt.VentModeList
-    # PtAssessment_Calcul_seances_VS_sur_tube.Etat
-    # PtAssessment_Calcul_seances_VS_sur_tube.Duree
 
     unplugAttemptInvasiveVentilation = false
     unplugAttemptInvasiveVentilationDuration = missing # TODO Bapt : ou 0 ?
@@ -89,7 +86,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
         "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
         maximum)
 
-    return Dict(
+    return RefiningFunctionResult(
         :unplugAttemptInvasiveVentilation => unplugAttemptInvasiveVentilation,
         :unplugAttemptInvasiveVentilationDuration => unplugAttemptInvasiveVentilationDuration
     )
@@ -97,34 +94,37 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
 end
 
 function ETL.Ventilation.computeRespiratoryVolumeMinute(window::DataFrame)  
-    # PtAssessment_Volume_minute_lmin.mesure
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtAssessment_Volume_minute_lmin.mesure",
         n -> round(mean(n), digits=2))
+    
+    return RefiningFunctionResult(:respiratoryVolumeMinute => res)
 end
 
 
 function ETL.Ventilation.computeRespiratoryRate(window::DataFrame) 
-    # PtAssessment_Frequence_respiratoire_par_min.mesuree
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
             "PtAssessment_Frequence_respiratoire_par_min.mesuree",
             n -> round(mean(n), digits=2))
+
+    return RefiningFunctionResult(:respiratoryRate => res)
 end
 
 
 function ETL.Ventilation.computeFio2(window::DataFrame) 
-    # PtAssessment_Fraction_en_oxygene_FiO2.mesure
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
             "PtAssessment_Fraction_en_oxygene_FiO2.mesure",
             n -> round(mean(n), digits=2))
+    
+    return RefiningFunctionResult(:fiO2 => res)
+    
 end
 
 
 function ETL.Ventilation.computePao2OverFio2(window::DataFrame) 
-    # PtAssessment_paO2FiO2ratioint.paO2FiO2ratiocalc
 
     pao2OverFio2 = ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
@@ -141,16 +141,17 @@ function ETL.Ventilation.computePao2OverFio2(window::DataFrame)
         end
     end
 
-    return Dict(
+    return RefiningFunctionResult(
         :pao2OverFio2 => pao2OverFio2,
         :hypoxemiaStatus => hypoxemiaStatus
     )
 end
 
 function ETL.Ventilation.computePositiveExpiratoryPressure(window::DataFrame) 
-    # PtAssessment_Pression_positive_PEP_cmH2O.mesure
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
             "PtAssessment_Pression_positive_PEP_cmH2O.mesure",
             n -> round(mean(n), digits=2))
+
+    return RefiningFunctionResult(:positiveExpiratoryPressure => res)
 end

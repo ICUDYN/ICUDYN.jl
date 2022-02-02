@@ -1,21 +1,15 @@
 include("utils-window-def.jl")
 
 function loadConf end
-
 function getConf end
 
+function getLogDir end
 function getDataDir end
-
 function getDataInputDir end
-
 function getDataOutputDir end
-
 function getICUDYNTempDir end
-
 function getICUDYNTempFile end
-
 function getETLAIntegrerDir end
-
 function blindBakeIsRequired end
 
 """
@@ -70,7 +64,6 @@ function formatDate end
 function formatDateTime end
 
 function formatExceptionAndStackTrace end
-
 function formatExceptionAndStackTraceCore end
 
 function convertStringToBool end

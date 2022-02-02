@@ -18,7 +18,7 @@ include("../../../runtests-prerequisite.jl")
         )
     result = ETL.Physiological.computeGender(df)
 
-    @test result == "male"
+    @test result == Dict(:gender => "male")
 
     # #
     # df = DataFrame(
@@ -55,7 +55,7 @@ end
         )
     result = ETL.Physiological.computeAge(df)
 
-    @test result == 20
+    @test result == Dict(:age => 20)
 end
 
 
@@ -76,7 +76,7 @@ end
         )
     result = ETL.Physiological.computeHeight(df)
 
-    @test result == 183
+    @test result == Dict(:height => 183)
 end
 
 
@@ -97,7 +97,8 @@ end
         )
     result = ETL.Physiological.computeWeight(df)
 
-    @test result == 83
+    @test result == Dict(:weight => 83)
+
 end
 
 
@@ -162,7 +163,7 @@ end
             "PtSiteCare_urineOuputInt.outputVolume"]
         )
     result = ETL.Physiological.computeUrineVolume(df)
-    @test result == 130
+    @test result == Dict(:urineVolume => 130)
 end
 
 
@@ -222,7 +223,7 @@ end
         )
     result = ETL.Physiological.computeTemperature(df)
 
-    @test result == 37.3
+    @test result == Dict(:temperature => 37.3)
 end
 
 
@@ -245,11 +246,12 @@ end
         )
     result = ETL.Physiological.computeNeuroGlasgow(df,false)
 
-    @test result == 11
+    @test result == Dict(:neuroGlasgow => 11)
 
     result = ETL.Physiological.computeNeuroGlasgow(df,true)
 
-    @test result == 16
+    @test result == Dict(:neuroGlasgow => 16)
+
 
 
 end
@@ -448,10 +450,7 @@ end
         )
     result = ETL.Physiological.computePain(df)
 
-    @test result == "not_or_low"
-
-
-
+    @test result == Dict(:pain => "not_or_low")
 
     #test string value of pain
     df = DataFrame(
@@ -509,7 +508,7 @@ end
         )
     result = ETL.Physiological.computePain(df)
 
-    @test result == "moderate"
+    @test result == Dict(:pain => "moderate")
 
     #test bps value of pain
     df = DataFrame(
@@ -565,8 +564,10 @@ end
             "PtAssessment_Echelle_comportementale_douleur.Total_BPS",
             "PtAssessment_Echelle_comportementale_douleur.Total_BPS"]
         )
+
+
     result = ETL.Physiological.computePain(df)
 
-    @test result == "high"
+    @test result == Dict(:pain => "high")
 
 end

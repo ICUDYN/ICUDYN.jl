@@ -104,7 +104,7 @@ end
 end
 
 
-@testset "Test ICUDYNUtil.getMostFrequentValue(vec::Vector{Any})" begin
+@testset "Test ICUDYNUtil.getMostFrequentValue" begin
     ICUDYNUtil.getMostFrequentValue(["a","b"])
 end
 

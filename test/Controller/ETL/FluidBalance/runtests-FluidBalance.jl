@@ -50,7 +50,7 @@ end
         )
     result = ETL.FluidBalance.computeVolumePerfusion(df)
 
-    @test result == 4.4
+    @test result == Dict(:volumePerfusion => 4.4)
 
 end
 
@@ -113,7 +113,7 @@ end
         )
     result = ETL.FluidBalance.computeVolumeMedecine(df)
 
-    @test result == 4.4
+    @test result == Dict(:volumeMedecine => 4.4)
 
 end
 
@@ -136,7 +136,7 @@ end
         )
     result = ETL.FluidBalance.computeVolumeEnteralFeeding(df)
 
-    @test result == 4.4
+    @test result == Dict(:volumeEnteralFeeding => 4.4)
 
 end
 
@@ -159,7 +159,7 @@ end
         )
     result = ETL.FluidBalance.computeVolumeParentalFeeding(df)
 
-    @test result == 4.4
+    @test result == Dict(:volumeParentalFeeding => 4.4)
 
 end
 

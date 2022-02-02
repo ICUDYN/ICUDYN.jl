@@ -89,7 +89,7 @@ df = DataFrame(
     )
 
     res = ETL.Prescription.computePrescriptionBaseVars(df)
-    println(res)
+
     @test ICUDYNUtil.checkIfDataframesAreEqual(DataFrame(res), DataFrame(Dict(
         :midazolamDrip         => 6.0,
         :sufentanylDiscrete    => missing,

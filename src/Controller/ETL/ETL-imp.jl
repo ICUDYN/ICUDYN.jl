@@ -1,5 +1,5 @@
 # ################################## #
-# Include of the refiniing functions #
+# Include of the refining functions #
 # ################################## #
 include("./Misc/Misc-imp.jl")
 include("./Physiological/Physiological-imp.jl")
@@ -23,12 +23,16 @@ function ETL.preparePatientsFromRawExcelFile(
     patientsCodeNames::Vector{String}
     ;filepath = "$(tempname()).xlsx"
 )
-    patientsPreparedData::Vector{DataFrame} = DataFrame[]
+    # NOTE: Some implementations of processPatientRawHistoryWithFileLogging return missing 
+    #       when an error is raised
+    patientsPreparedData::Vector{DataFrame,Missing} = DataFrame[]
 
     for patientCodeName in patientsCodeNames
         srcDF = ETL.getPatientDFFromExcel(patientCodeName)
+        
         push!(patientsPreparedData,
-              ETL.processPatientRawHistory(srcDF))
+                ETL.processPatientRawHistoryWithFileLogging(srcDF,patientCodeName))        
+        filter!(x -> ismissing(x),patientsPreparedData)        
     end
 
     ICUDYNUtil.exportToExcel(
@@ -56,6 +60,34 @@ function ETL.getPatientDFFromExcel(patientCodeName::String)
     return df
 end
 
+function ETL.processPatientRawHistoryWithFileLogging(df::DataFrame,patientCodeName::String)
+
+    timestamp_logger(logger) = TransformerLogger(logger) do log
+        merge(log, (; message = "$(Dates.format(now(), date_format)) $(log.message)"))
+    end
+
+    patientETLLogger = TeeLogger(
+        FileLogger(joinpath(getLogDir(),"$patientCodeName.log")) |> 
+        n -> TransformerLogger(n) do log
+            merge(log, (; message = "$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS")) $(log.message)"))
+        end,
+        ConsoleLogger(stdout, Logging.Debug)
+    )
+    ETL.processPatientRawHistory(df,patientETLLogger)
+end
+
+function ETL.processPatientRawHistory(df::DataFrame,patientETLLogger::Logging.AbstractLogger)
+    with_logger(patientETLLogger) do
+        try
+            return ETL.processPatientRawHistory(df)
+        catch e
+            @error "Error while processing patient"          
+            @error formatExceptionAndStackTrace(e,stacktrace(catch_backtrace()))            
+            return missing
+        end
+    end
+end
+
 function ETL.processPatientRawHistory(df::DataFrame)
 
     # ##### #
@@ -73,7 +105,7 @@ function ETL.processPatientRawHistory(df::DataFrame)
     # ###### #
     refinedWindows = Vector{RefinedWindow}()
     for rawWindow in rawWindows
-        refinedWindow = ETL.initializeWindow(rawWindow)
+        refinedWindow::RefinedWindow = ETL.initializeWindow(rawWindow)
         push!(refinedWindows,refinedWindow)
         ETL.refineWindow1stPass!(refinedWindow,rawWindow)
     end
@@ -87,7 +119,7 @@ function ETL.processPatientRawHistory(df::DataFrame)
     # Second pass #
     # ########### #
     # Prepare variables often needed in second pass (for performance)
-    cache = Dict{Symbol, Any}()
+    cache = Dict{Symbol, RefiningFunctionAllowedValueType}()
 
     refinedWindows = Vector{RefinedWindow}()
     for rawWindow in rawWindows
@@ -149,10 +181,10 @@ function ETL.orderColmunsOfRefinedHistory!(df::DataFrame)
     df
 end
 
-function ETL.combineRefinedWindows(refinedWindows::Vector{RefinedWIndow})
+function ETL.combineRefinedWindows(refinedWindows::Vector{RefinedWindow})
     windowsDFs = DataFrame[]
     for refinedWindow in (refinedWindows)
-        refinedWindowDict = RefinedModuleResults()
+        refinedWindowDict = RefinedWindowModuleResults()
 
         for (_module,dict) in refinedWindow
 
@@ -167,7 +199,6 @@ function ETL.combineRefinedWindows(refinedWindows::Vector{RefinedWIndow})
     df = vcat(windowsDFs..., cols=:union)
     
     # Rename for convenience
-    println(names(df))
     DataFrames.rename!(df, :Misc_startTime => :startTime, :Misc_endTime => :endTime)
     
     return df
@@ -211,16 +242,11 @@ function ETL.cutPatientDF(df::DataFrame)
     # Add last window
     push!(df_array,window)
 
-
-    # for indices in RollingTimeWindow(df.chartTime, Hour(4))
-    #     println(indices)
-    #    push!(df_array,df[indices,:])
-    # end
     return df_array
 end #cut_patient_df
 
 function ETL.initializeWindow(window::DataFrame)
-    result::Dict{Module,Any} = Dict{Module,Any}()
+    result::RefinedWindow = RefinedWindow()
     return result
 end
 
@@ -250,7 +276,7 @@ function ETL.get2ndPassRefiningFunctions(_module::Module)
     n -> filter(x -> length(first(methods(x)).sig.parameters) > 2,n)
 end
 
-function ETL.refineWindow1stPass!(refinedWindow::Dict{Module,Any},window::DataFrame)
+function ETL.refineWindow1stPass!(refinedWindow::RefinedWindow, window::DataFrame)
     for _module in ICUDYNUtil.getRefiningModules()
         refinedWindow[_module] = ETL.refineWindow1stPass(window, _module)
     end
@@ -258,7 +284,7 @@ end
 
 function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
 
-    moduleRes = RefinedModuleResults()
+    moduleRes = RefinedWindowModuleResults()
 
     # Get the 1st pass functions of the module
     refiningFunctions = ETL.get1stPassRefiningFunctions(_module)
@@ -276,9 +302,9 @@ function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
 end
 
 function ETL.enrichModuleResultWithFunctionResult!(
-    moduleRes::Dict{Symbol,Any},
+    moduleRes::IRefinedWindowModuleResults,
     fct::Function,
-    fctRes::RefiningFunctionResult)    
+    fctRes::IRefiningFunctionResult)    
     
     # Add the result of the function to the results of the refining module
     ICUDYNUtil.mergeResultsDictionaries!(moduleRes,fctRes)
@@ -286,7 +312,7 @@ function ETL.enrichModuleResultWithFunctionResult!(
 end
 
 function ETL.enrichModuleResultWithFunctionResult!(
-    moduleRes::RefinedModuleResults,
+    moduleRes::IRefinedWindowModuleResults,
     fct::Function,
     fctRes::Union{String,Number,Missing,DateTime})
 
@@ -299,13 +325,13 @@ end
 
 
 function ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
-    refinedWindow::Dict{Module,Any},
+    refinedWindow::RefinedWindow,
     _module::Module,
     fct::Function,
-    fctResult::Union{RefiningFunctionAllowedValueType,RefiningFunctionResult})
+    fctResult::Union{RefiningFunctionAllowedValueType,IRefiningFunctionResult})
 
     if !haskey(refinedWindow,_module)        
-        refinedWindow[_module] = RefinedModuleResults()
+        refinedWindow[_module] = RefinedWindowModuleResults()
     end
 
     moduleRes = refinedWindow[_module]
@@ -315,10 +341,10 @@ end
 
 
 function ETL.refineWindow2ndPass!(
-    refinedWindow::Dict{Module,Any},
+    refinedWindow::RefinedWindow,
     rawWindow::DataFrame,
     refinedWindows1stPass::DataFrame,
-    cache::Dict{Symbol, Any}
+    cache::Dict{Symbol, RefiningFunctionAllowedValueType}
     )    
 
     ETL.refreshCache!(cache,refinedWindows1stPass,first(rawWindow).chartTime)
@@ -339,33 +365,25 @@ function ETL.refineWindow2ndPass!(
         ETL.Misc.computeEndTime,
         fctResult)
 
-    println("cache : $cache")
     # Compute variable amine agent (Prescription)
-    fctResult = ETL.Prescription.computeAmineAgentsAdditionalVars(
+    fctResult = passmissing(ETL.Prescription.computeAmineAgentsAdditionalVars)(
         ETL.getCachedVariable(cache,:sameWindowNorepinephrineMeanMgHeure), 
         ETL.getCachedVariable(cache,:sameWindowEpinephrineMeanMgHeure), 
         ETL.getCachedVariable(cache,:sameWindowDobutamineMeanGammaKgMinute),
         ETL.getCachedVariable(cache,:weightAtAdmission))
-    
-    println("fctResult : $fctResult")
-
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
         refinedWindow,
         ETL.Prescription,
         ETL.Prescription.computeAmineAgentsAdditionalVars,
         fctResult)
 
-
     # Compute creatinine (Biology) age weight gender
-    fctResult = ETL.Biology.computeCreatinine(
+    fctResult = passmissing(ETL.Biology.computeCreatinine)(
         rawWindow,
         ETL.getCachedVariable(cache, :age),
         ETL.getCachedVariable(cache, :lastWeight),
         ETL.getCachedVariable(cache, :gender)
     )
-
-    println("fctResult : $fctResult")
-
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
         refinedWindow,
         ETL.Biology,
@@ -373,28 +391,22 @@ function ETL.refineWindow2ndPass!(
         fctResult)
 
     # Compute neuro Glasgow score (Physiological)
-    ETL.Physiological.computeNeuroGlasgow
-    fctResult = ETL.Physiological.computeNeuroGlasgow(
+    fctResult = passmissing(ETL.Physiological.computeNeuroGlasgow)(
         rawWindow,
         ETL.getCachedVariable(cache, :anySedative)
-    )
-
-    println("fctResult : $fctResult")
-
+    )    
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
         refinedWindow,
         ETL.Physiological,
         ETL.Physiological.computeNeuroGlasgow,
-        fctResult)
-    
-    
+        fctResult)   
     
     return refinedWindow
     
 end
 
 function ETL.refreshCache!(
-    cache::Dict{Symbol, Any},
+    cache::Dict{Symbol, RefiningFunctionAllowedValueType},
     refinedWindows::DataFrame,
     currentStartTime::DateTime)
 
@@ -421,10 +433,8 @@ function ETL.refreshCache!(
         ETL.updateCache!(cache, :gender, gender)
     end
 
-
     # Last recorded weight
-    lastWeight = sameWindowValue(row, :Physiological_weight)
-
+    lastWeight = sameWindowValue(row, :Physiological_weight)    
     if !ismissing(lastWeight)
         #if weight is in the current window, update it in cache, even if it's already in
         ETL.updateCache!(cache, :lastWeight, lastWeight)
@@ -466,11 +476,18 @@ function ETL.refreshCache!(
 
 end
 
-function ETL.updateCache!(cache::Dict{Symbol, Any}, varName::Symbol, value::Any)
+function ETL.updateCache!(
+    cache::Dict{Symbol, RefiningFunctionAllowedValueType},
+    varName::Symbol,
+    value::RefiningFunctionAllowedValueType)
+
     cache[varName] = value
 end
 
-function ETL.getCachedVariable(cache::Dict{Symbol, Any},varName::Symbol)
+function ETL.getCachedVariable(
+    cache::Dict{Symbol, RefiningFunctionAllowedValueType},
+    varName::Symbol)
+
     if haskey(cache,varName)
         return cache[varName]
     else 

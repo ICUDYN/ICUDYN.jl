@@ -6,6 +6,7 @@ function refineWindow1stPass! end
 function refineWindow1stPass end
 function refineWindow2ndPass! end
 function processPatientRawHistory end
+function processPatientRawHistoryWithFileLogging end
 function combineRefinedWindows end
 function enrichResultsOfRefiningModule! end
 function getRefiningFunctions end

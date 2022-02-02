@@ -29,6 +29,10 @@ function ICUDYNUtil.getDataDir()
     getConf("default","data_dir")
 end
 
+function ICUDYNUtil.getLogDir()
+    getConf("default","log_dir")
+end
+
 function ICUDYNUtil.getDataInputDir()
     joinpath(getDataDir(), "input")
 end
@@ -776,8 +780,8 @@ function ICUDYNUtil.getRefiningModules()
 end
 
 function ICUDYNUtil.mergeResultsDictionaries!(
-    dict1::Dict{Symbol, <:Any},
-    dict2::Dict{Symbol, <:Any}
+    dict1::Dict{Symbol, <:RefiningFunctionAllowedValueType},
+    dict2::Dict{Symbol, <:RefiningFunctionAllowedValueType}
     ;keyPrefix::String = ""
 )
 

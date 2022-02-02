@@ -1,7 +1,18 @@
 module ICUDYN
 
+"""
+   greet()
+
+Say Hi
+"""
 greet() = print("Hello World!")
 
+
+"""
+   greet(name::String)
+
+Say Hello
+"""
 function greet(name::String)
     @info "greet $name"
     return name
@@ -16,10 +27,6 @@ module Toto
     end
 end
 
-module Model
-   include("Model-protected/ETL-aliases.jl")
-end
-
 module ICUDYNUtil
 
    using ConfParser,PostgresORM,
@@ -32,7 +39,7 @@ module ICUDYNUtil
              getConf, getFrontendURL, getETLMaxSizeBeforeDBCommit,
              getETLTnterruptionFilepath, hasRole,
              getTimeZone, diffInSecondsAsInt,
-             getTranslation, json2Entity,
+             getTranslation, json2Entity, getLogDir,
              getDataDir, getICUDYNTempDir, getETLAIntegrerDir, getETLDejaIntegreDir,
              initialize_http_response_status_code,
              convertStringToZonedDateTime, convertStringToDate,
@@ -46,15 +53,19 @@ module ICUDYNUtil
              getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict,
              firstNonMissingValue, sameWindowValue, closestNonMissingValue, 
              closestNonMissingValueInCurrentOrPreviousWindows,
-             closestNonMissingValueInCurrentOrNextWindows 
+             closestNonMissingValueInCurrentOrNextWindows
 
      include("./util/utils-def.jl")
 
 end
 
 module Model
-
-    using Dates, TimeZones, UUIDs, PostgresORM
+   export RefiningFunctionAllowedValueType, 
+          IRefiningFunctionResult, RefiningFunctionResult, 
+          IRefinedWindowModuleResults, RefinedWindowModuleResults, 
+          RefinedWindow
+   using Dates, TimeZones, UUIDs, PostgresORM
+   include("Model-protected/ETL-aliases.jl")
 
 end
 
@@ -97,6 +108,10 @@ module Controller
       module Nutrition
         include("Controller/ETL/Nutrition/Nutrition-def.jl")
       end
+
+      """
+      zzzzzzzzzzzzzzz
+      """
       module Biology
          include("Controller/ETL/Biology/Biology-def.jl")
       end

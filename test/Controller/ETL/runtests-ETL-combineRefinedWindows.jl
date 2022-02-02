@@ -3,7 +3,7 @@ include("../../runtests-prerequisite.jl")
 
 @testset "Test ETL.combineRefinedWindows" begin
 
-    refinedWindow1 = Dict{Module,Any}(
+    refinedWindow1 = RefinedWindow(
         ETL.Misc => Dict(
             :startTime => DateTime("2022-01-01T14:00:00"),
             :endTime => DateTime("2022-01-01T17:40:00"),
@@ -12,7 +12,7 @@ include("../../runtests-prerequisite.jl")
             :toto => 2
         )
     )
-    refinedWindow2 = Dict{Module,Any}(
+    refinedWindow2 = RefinedWindow(
         ETL.Misc => Dict(
             :startTime => DateTime("2022-01-01T18:10:00"),
             :endTime => DateTime("2022-01-01T21:40:00"),
@@ -30,7 +30,6 @@ include("../../runtests-prerequisite.jl")
     )
 
     result = ETL.combineRefinedWindows([refinedWindow1, refinedWindow2])
-    println(result)
     
     @test  ICUDYNUtil.check_if_dataframes_are_equal(result,expected)
     

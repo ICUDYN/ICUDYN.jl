@@ -30,7 +30,7 @@ Computes the blood cells units
 
 function ETL.Transfusion.computeBloodCellsUnits(window::DataFrame)
     result = ETL.Transfusion._computeTransfusionParam(window,"PtIntake_Culot GR")
-    return Dict(
+    return RefiningFunctionResult(
         :redBloodCellsUnits => result[1],
         :redBloodCellsVolume => result[2]
         )
@@ -43,7 +43,7 @@ Computes the platelets
 """
 function ETL.Transfusion.computePlatelets(window::DataFrame)
     result =  ETL.Transfusion._computeTransfusionParam(window,"PtIntake_Plaquettes")
-    return Dict(
+    return RefiningFunctionResult(
         :plateletsUnits => result[1],
         :plateletsVolume => result[2]
     )
@@ -56,7 +56,7 @@ Computes the plasma
 """
 function ETL.Transfusion.computePlasma(window::DataFrame)
     result =  ETL.Transfusion._computeTransfusionParam(window,"PtIntake_PFC")
-    return Dict(
+    return RefiningFunctionResult(
         :plasmaUnits => result[1],
         :plasmaVolume => result[2]
     )

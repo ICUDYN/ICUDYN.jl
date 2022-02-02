@@ -14,10 +14,10 @@ include("../../../runtests-prerequisite.jl")
         a = ones(length(chartTime))
     )
     result = ETL.Misc.computeStartTime(df)
-    @test result == DateTime("2022-01-01T10:00:00")
+    @test result == Dict(:startTime => DateTime("2022-01-01T10:00:00"))
 
     result = ETL.Misc.computeEndTime(df)
-    @test result == DateTime("2022-01-01T14:01:00")
+    @test result == Dict(:endTime => DateTime("2022-01-01T14:01:00"))
 
 end
 
@@ -38,7 +38,7 @@ end
         )
     result = ETL.Misc.computeDischargeDisposition(df)
 
-    @test result == "case1"
+    @test result == Dict(:dischargeDisposition => "case1")
 
     #
     df = DataFrame(
@@ -54,7 +54,7 @@ end
 
     result = ETL.Misc.computeDischargeDisposition(df)
 
-    @test result === missing
+    @test result[:dischargeDisposition] === missing
     #
     df = DataFrame(
         terseForm = ["xxxxx", "NULL","case2"], 
@@ -65,5 +65,5 @@ end
         )
     result = ETL.Misc.computeDischargeDisposition(df)
     
-    @test result === missing
+    @test result[:dischargeDisposition] === missing
 end

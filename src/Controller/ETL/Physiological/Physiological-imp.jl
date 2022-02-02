@@ -19,7 +19,10 @@ function ETL.Physiological.computeGender(window::DataFrame)
     else  
         @error "Unknown gender code[$n]"
         return ICUDYNUtil.getValueOfError()
-    end 
+    end
+    
+    return RefiningFunctionResult(:gender => res)
+    
 end
 
 
@@ -29,10 +32,12 @@ end
 Computes the age of the patient
 """
 function ETL.Physiological.computeAge(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window, 
         "ptDemographic_patientAgeInt.ageValue", 
         n-> first(n))
+
+    return RefiningFunctionResult(:age => res)
 end
 
 
@@ -43,7 +48,12 @@ end
 Computes the height of the patient
 """
 function ETL.Physiological.computeHeight(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "ptDemographic_PtHeight.height", n->round(Int,mean(n)))
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "ptDemographic_PtHeight.height",
+        n->round(Int,mean(n)))
+
+    return RefiningFunctionResult(:height => res)
 end
 
 
@@ -53,7 +63,12 @@ end
 # Computes the weight of the patient
 # """
 function ETL.Physiological.computeWeight(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtAssessment_ptWeightIntervention.ptWeight", n->round(Int,mean(n)))
+    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window, 
+        "PtAssessment_ptWeightIntervention.ptWeight", 
+        n->round(Int,mean(n)))
+
+    return RefiningFunctionResult(:weight => res)
 end
 
 
@@ -100,14 +115,13 @@ function ETL.Physiological.computeUrineVolume(window::DataFrame)
     "PtSiteCare_urineOuputInt.outputVolume", :verboseForm) |>
     n -> if isempty(n) return missing else n end
 
-    if res === missing
-        return res
-    else
+    if res !== missing
         res = replace.(res, "ml"=>"")
         res = parse.(Int,res)
-        return round(mean(res),digits=2)
+        res = round(mean(res),digits=2)
     end
 
+    return RefiningFunctionResult(:urineVolume => res)
 end
 
 
@@ -121,7 +135,7 @@ function ETL.Physiological.computeArterialBp(window::DataFrame)
     bpDiastolic = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_arterialBPInt.diastolic", n->round(mean(n),digits=1))
     bpSystolic = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_arterialBPInt.systolic", n->round(mean(n),digits=1))
 
-    return Dict(
+    return RefiningFunctionResult(
         :bpMean => bpMean,
         :bpDiastolic => bpDiastolic,
         :bpSystolic => bpSystolic
@@ -135,7 +149,12 @@ end
 # Computes the temperature of the patient
 # """
 function ETL.Physiological.computeTemperature(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_temperatureInt.temperature", n->round(mean(n),digits=1))
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "PtAssessment_temperatureInt.temperature",
+        n->round(mean(n),digits=1))
+
+    return RefiningFunctionResult(:temperature => res)
 end
 
 
@@ -146,26 +165,39 @@ end
 # """
 function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, anySedative::Bool)
 
+
     if anySedative
-        return 16
+        res = 16
     else
-        return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
+        res = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
     end
+
+    return RefiningFunctionResult(:neuroGlasgow => res)
 end
 
 
 
 # """
-#     computeNeuroRamsay(window::DataFrame, sedative_isoflurane, target_score, any_sedative::Bool=false)
+#     computeNeuroRamsay(window::DataFrame,
+#       sedative_isoflurane,
+#       target_score,
+#       any_sedative::Bool=false)
 
 # Computes the Ramsay score of the patient
 # """
-function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedativeIsoflurane, targetScore, anySedative)
+function ETL.Physiological.computeNeuroRamsay(
+    window::DataFrame,
+    sedativeIsoflurane,
+    targetScore,
+    anySedative)
 
 #TODO Bapt : Code R pas fini ? Fonction a discuter
     error("Implementation of this method not finished")
 
-    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
+    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "PtAssessment_GCSInt.GCSNum",
+        n->round(Int,mean(n)))
 
     #code R :
     # NOTE: imposseible d'avoir la valeur cible
@@ -191,7 +223,7 @@ function ETL.Physiological.computeNeuroRamsay(window::DataFrame, sedativeIsoflur
   #
   # }
 
-    return res
+    return RefiningFunctionResult(:neuroRamsay => res)
 end
 
 
@@ -202,7 +234,10 @@ end
 # Computes the pain of the patient from numeric value
 # """
 function ETL.Physiological._computeDouleurNumValue(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_Evaluation_douleur.EV_num", n->round(Int,mean(n)))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "PtAssessment_Evaluation_douleur.EV_num",
+        n->round(Int,mean(n)))
 end
 
 
@@ -213,15 +248,16 @@ end
 # Computes the pain of the patient from string value
 # """
 function ETL.Physiological._computeDouleurStringValue(window::DataFrame)
-    "PtAssessment_Evaluation_douleur.EV_analogique"
 
-    res = window |>
-    n -> ICUDYNUtil.getNonMissingValues(n, :attributeDictionaryPropName,
-            "PtAssessment_Evaluation_douleur.EV_analogique", :verboseForm) |>
-    n -> if isempty(n) return missing else n end |>
-    n -> rmAccentsAndLowercaseAndStrip.(n) |> ICUDYNUtil.getMostFrequentValue
-
-    return res
+    return window |>
+        n -> ICUDYNUtil.getNonMissingValues(
+            n,
+            :attributeDictionaryPropName,
+            "PtAssessment_Evaluation_douleur.EV_analogique",
+            :verboseForm) |>
+        n -> if isempty(n) return missing else n end |>
+        n -> rmAccentsAndLowercaseAndStrip.(n) |> 
+        ICUDYNUtil.getMostFrequentValue
 
 end
 
@@ -232,7 +268,10 @@ end
 # Computes the pain of the patient from Bps value
 # """
 function ETL.Physiological._computeDouleurBpsNumValue(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_Echelle_comportementale_douleur.Total_BPS", n->round(Int,mean(n)))
+    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "PtAssessment_Echelle_comportementale_douleur.Total_BPS", 
+        n -> round(Int,mean(n)))
 end
 
 
@@ -247,45 +286,36 @@ function ETL.Physiological.computePain(window::DataFrame)
     douleurStringValue = ETL.Physiological._computeDouleurStringValue(window)
     douleurBpsNumValue = ETL.Physiological._computeDouleurBpsNumValue(window)
 
+    res = missing
     if douleurNumValue !== missing
-        println("numeric")
         if douleurNumValue <= 3
-            return "not_or_low"
+            res = "not_or_low"
         elseif douleurNumValue <= 7
-            return "moderate"
+            res = "moderate"
         elseif douleurNumValue > 7
-            return "high"
+            res = "high"
         # else
         #     #do error ?
         end
-    end
-
-    if douleurStringValue !== missing
-        println("string")
-
+    elseif douleurStringValue !== missing
         if occursin("aucune", douleurStringValue) || occursin("faible", douleurStringValue)
-            return "not_or_low"
+            res = "not_or_low"
         elseif occursin("moderee", douleurStringValue)
-            return "moderate"
+            res = "moderate"
         else
-            return "high"
+            res = "high"
         end
-    end
-
-
-    if douleurBpsNumValue !== missing
-        println("bps")
-
+    elseif douleurBpsNumValue !== missing
         if douleurBpsNumValue <= 6
-            return "not_or_low"
+            res = "not_or_low"
         elseif douleurBpsNumValue <= 9
-            return "moderate"
+            res = "moderate"
         elseif douleurBpsNumValue > 9
-            return "high"
+            res = "high"
         # else
         #     #do error ?
         end
     end
 
-    return missing
+    return RefiningFunctionResult(:pain => res)
 end

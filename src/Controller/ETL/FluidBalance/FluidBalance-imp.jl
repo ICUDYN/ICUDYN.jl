@@ -7,7 +7,7 @@ function ETL.FluidBalance.computeVolumeInOut(window::DataFrame)
                         window,
                         "PtTotalBalance_Total pertes (24h)",
                         n->round(sum(n),digits=1))
-    return Dict(
+    return RefiningFunctionResult(
         :volumeIn => in,
         :volumeOut => out
         )
@@ -15,10 +15,11 @@ end
 
 
 function ETL.FluidBalance.computeVolumePerfusion(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtTotalBalance_Perfusion IV, 24h",
         n->round(sum(n), digits=1))
+    return RefiningFunctionResult(:volumePerfusion => res)
 end
 
 
@@ -42,7 +43,7 @@ function ETL.FluidBalance.computeVolumeAndTypeVascularFilling(window::DataFrame)
         n -> sort(n) |>
         n -> join(n, ", ")
 
-    return Dict(
+    return RefiningFunctionResult(
         :vascularFillingVolumeIn => volume,
         :vascularFillingType => type
         )
@@ -50,15 +51,30 @@ end
 
 
 function ETL.FluidBalance.computeVolumeMedecine(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtTotalBalance_Médicaments, PSE et analgésie, 24h", n->round(sum(n),digits=1))
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "PtTotalBalance_Médicaments, PSE et analgésie, 24h",
+        n->round(sum(n),digits=1))
+
+    return RefiningFunctionResult(:volumeMedecine => res)
 end
 
 
 function ETL.FluidBalance.computeVolumeEnteralFeeding(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtTotalBalance_Apports entéraux, 24h", n->round(sum(n),digits=1))
+    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window,
+        "PtTotalBalance_Apports entéraux, 24h",
+        n->round(sum(n),digits=1))
+
+    return RefiningFunctionResult(:volumeEnteralFeeding => res)
 end
 
 
 function ETL.FluidBalance.computeVolumeParentalFeeding(window::DataFrame)
-    return ICUDYNUtil.getNumericValueFromWindowTerseForm(window, "PtIntake_tpnInt.intakeVolume", n->round(sum(n),digits=1))
+    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        window, 
+        "PtIntake_tpnInt.intakeVolume", 
+        n->round(sum(n),digits=1))
+
+    return RefiningFunctionResult(:volumeParentalFeeding => res)
 end

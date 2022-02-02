@@ -88,7 +88,11 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
     return dict
 end
 
+"""
+    computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String) 
 
+blabla
+"""
 function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String) 
     
     creatinine = ICUDYNUtil.getNonMissingValues(
@@ -111,7 +115,7 @@ function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::N
         cockroftDfg = round(1.25 * weight * (140 - age) / creatinine, digits = 2) * 0.84
     end
     
-    return Dict(
+    return RefiningFunctionResult(
         :creatinine => creatinine,
         :cockroftDfg => cockroftDfg
     )
@@ -129,7 +133,7 @@ function ETL.Biology.computeUrea(window::DataFrame)
         "PtLabResult_Ure_urinaireInt.Ure_urinairePty",
         mean)
 
-    return Dict(
+    return RefiningFunctionResult(
         :bloodUrea => bloodUrea,
         :urineUrea => urineUrea
     )

@@ -78,7 +78,7 @@ end
             "toto"
             ]
         )
-    @test ETL.Dialysis.computeDialysisMolecule(df) == "heparin"
+    @test ETL.Dialysis.computeDialysisMolecule(df) == Dict(:dialysisMolecule => "heparin")
 
 
 end
@@ -97,7 +97,7 @@ end
             "toto"
             ]
         )
-    @test ETL.Dialysis.computeDialysisWaterLoss(df) == 50
+    @test ETL.Dialysis.computeDialysisWaterLoss(df) == Dict(:dialysisWaterLoss => 50)
 
     # Case 'no values'
     df = DataFrame(
@@ -112,6 +112,6 @@ end
             ]
         )
 
-    @test ETL.Dialysis.computeDialysisWaterLoss(df) === missing
-
+    res = ETL.Dialysis.computeDialysisWaterLoss(df)
+    @test res[:dialysisWaterLoss] === missing
 end
