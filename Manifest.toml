@@ -27,14 +27,6 @@ git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.10"
 
-[[BlindBake]]
-deps = ["Dates", "Distributed"]
-git-tree-sha1 = "53ba9f7af29c000f5c2a0cd64dad708e735b521f"
-repo-rev = "master"
-repo-url = "https://github.com/tencnivel/BlindBake.jl"
-uuid = "f553a979-f94b-4d5f-83cd-60d30b68875d"
-version = "0.1.3"
-
 [[CEnum]]
 git-tree-sha1 = "215a9aa4a1f23fbd05b92769fdd62559488d70e9"
 uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
