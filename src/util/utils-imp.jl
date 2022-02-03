@@ -1,7 +1,7 @@
 include("utils-window-imp.jl")
 
 # see ~/.julia/config/startup.jl for setting the environment variable
-function ICUDYNUtil.loadConf()::ConfParse
+function ICUDYNUtil.loadConf()::Union{ConfParse,Missing}
 
     environment_variable_name = "ICUDYN_CONFIGURATION_FILE"
 
@@ -11,7 +11,7 @@ function ICUDYNUtil.loadConf()::ConfParse
     else
         @warn ("The application requires the environment"
                           * " variable[$environment_variable_name] to be set.")
-        return
+        return missing
     end
 
     conf = ConfParse(conf_file)
