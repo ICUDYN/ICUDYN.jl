@@ -1,4 +1,0 @@
-function convertDataFrameToTimeArray end
-function convertTimeArrayToDataFrame end
-function splitDataFrameInWindows end
-function getCutIndexesOfWindows end

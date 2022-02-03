@@ -1,3 +1,0 @@
-function computeStartTime end
-function computeEndTime end
-function computeDischargeDisposition end

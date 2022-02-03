@@ -1,4 +1,0 @@
-function _computeTransfusionParam end
-function computeBloodCellsUnits end
-function computePlatelets end
-function computePlasma end
