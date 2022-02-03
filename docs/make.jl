@@ -1,9 +1,6 @@
-using Pkg
-Pkg.activate(".")
 using Documenter
 using Distributed
 include("../scripts/using.jl")
-# using ICUDYN.Controller.ETL.Biology
 
 makedocs(
     sitename="ICUDYN.jl",
@@ -15,7 +12,6 @@ makedocs(
         ]
     ]
 )
-
 
 deploydocs(
     repo = "github.com/ICUDYN/ICUDYN.jl.git",
