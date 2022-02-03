@@ -1,3 +1,8 @@
 # ICUDYN.jl
 
 A Julia project for the server side of the ICUDYN platform
+
+**Documentation**:  [![][docs-latest-img]][docs-latest-url]
+
+[docs-latest-img]: https://img.shields.io/badge/docs-latest-blue.svg
+[docs-latest-url]: https://icudyn.github.io/ICUDYN.jl/
