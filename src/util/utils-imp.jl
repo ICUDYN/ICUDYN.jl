@@ -9,8 +9,8 @@ function ICUDYNUtil.loadConf()::ConfParse
         @info "loading configuration file[$(ENV[environment_variable_name])]"
         conf_file = ENV[environment_variable_name]
     else
-        throw(DomainError("The application requires the environment"
-                          * " variable[$environment_variable_name] to be set."))
+        @warn ("The application requires the environment"
+                          * " variable[$environment_variable_name] to be set.")
     end
 
     conf = ConfParse(conf_file)
