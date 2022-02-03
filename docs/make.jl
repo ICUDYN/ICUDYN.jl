@@ -1,6 +1,6 @@
 using Documenter
 using Distributed
-include("../scripts/using.jl")
+include("../scripts/using-project-modules.jl")
 
 makedocs(
     sitename="ICUDYN.jl",
