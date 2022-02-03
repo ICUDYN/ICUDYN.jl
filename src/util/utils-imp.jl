@@ -11,6 +11,7 @@ function ICUDYNUtil.loadConf()::ConfParse
     else
         @warn ("The application requires the environment"
                           * " variable[$environment_variable_name] to be set.")
+        return
     end
 
     conf = ConfParse(conf_file)
