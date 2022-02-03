@@ -10,7 +10,12 @@ test/assets/patients/*
 tmp/*
 !tmp/.gitkeep
 
+# Ignore debug scripts but keep the dir
 debug-scripts/*
 !debug-scripts/.gitkeep
 
+# Ignore the developer logs dir
 logs/*
+
+# Ignore Documenter.jl build dir
+docs/build/
