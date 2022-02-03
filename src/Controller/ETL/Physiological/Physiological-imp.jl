@@ -103,11 +103,11 @@ function ETL.Physiological.computeHeartRateVars(window::DataFrame)
 end
 
 
-# """
-#     computeUrineVolume(window::DataFrame)
+"""
+     computeUrineVolume(window::DataFrame)
 
-# Computes the urine volume of the patient
-# """
+Computes the urine volume of the patient
+"""
 function ETL.Physiological.computeUrineVolume(window::DataFrame)
     
     res = window |>
@@ -158,18 +158,21 @@ function ETL.Physiological.computeTemperature(window::DataFrame)
 end
 
 
-# """
-#     computeNeuroGlasgow(window::DataFrame, any_sedative::Bool=false)
+"""
+    computeNeuroGlasgow(window::DataFrame, any_sedative::Bool=false)
 
-# Computes the Glasgow score of the patient
-# """
+Computes the Glasgow score of the patient
+"""
 function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, anySedative::Bool)
 
 
     if anySedative
         res = 16
     else
-        res = ICUDYNUtil.getNumericValueFromWindowTerseForm(window,"PtAssessment_GCSInt.GCSNum", n->round(Int,mean(n)))
+        res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
+            window,
+            "PtAssessment_GCSInt.GCSNum",
+            n->round(Int,mean(n)))
     end
 
     return RefiningFunctionResult(:neuroGlasgow => res)

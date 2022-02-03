@@ -10,3 +10,5 @@ IRefinedWindowModuleResults = Dict{Symbol,<:RefiningFunctionAllowedValueType}
 RefinedWindowModuleResults = Dict{Symbol,RefiningFunctionAllowedValueType}
 
 RefinedWindow = Dict{Module, RefinedWindowModuleResults}
+
+RefinedHistory = Union{DataFrame,Missing}

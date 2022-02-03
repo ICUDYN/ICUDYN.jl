@@ -64,7 +64,9 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 
             startTime = continous1stCase |>
                 n -> filter(r -> r.attributeLongLabel == "PtIntakeOrder_2.a. CVVHF.Interface Details.Effective Time",n) |>
-                n -> n.chartTime |> first
+                n -> n.chartTime |> 
+                n -> if isempty(n) missing else first(n) end
+
 
             if !ismissing(startTime) && !ismissing(endTime)
                 durationPrescribed_hours = Hour(

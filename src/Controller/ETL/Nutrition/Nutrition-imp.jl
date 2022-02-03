@@ -42,7 +42,10 @@ function ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window::DataFrame)
 
     # If any of the two parenteral volume is not missing and superior to zero
     if (any(.!ismissing.([parenteralVolPerikabiven,parenteralVolSmofkabivenOlimel]))
-        && any([parenteralVolPerikabiven,parenteralVolSmofkabivenOlimel] .> 0))
+            && any(
+                filter(x -> !ismissing(x),[parenteralVolPerikabiven,parenteralVolSmofkabivenOlimel])
+                .> 0)
+        )
 
         parenteralFeeding = true
 

@@ -25,15 +25,25 @@ function ETL.preparePatientsFromRawExcelFile(
 )
     # NOTE: Some implementations of processPatientRawHistoryWithFileLogging return missing 
     #       when an error is raised
-    patientsPreparedData::Vector{DataFrame,Missing} = DataFrame[]
+    patientsPreparedData::Vector{Union{DataFrame,Missing}} = DataFrame[]
 
     for patientCodeName in patientsCodeNames
         srcDF = ETL.getPatientDFFromExcel(patientCodeName)
         
         push!(patientsPreparedData,
-                ETL.processPatientRawHistoryWithFileLogging(srcDF,patientCodeName))        
-        filter!(x -> ismissing(x),patientsPreparedData)        
+                ETL.processPatientRawHistoryWithFileLogging(srcDF,patientCodeName) |>
+                n -> begin
+                    @info size(n)
+                    n
+                end
+                )        
+             
     end
+    @info length(patientsPreparedData)
+
+    filter!(x -> !ismissing(x),patientsPreparedData) 
+    @info length(patientsPreparedData)
+
 
     ICUDYNUtil.exportToExcel(
         patientsPreparedData,
@@ -66,14 +76,23 @@ function ETL.processPatientRawHistoryWithFileLogging(df::DataFrame,patientCodeNa
         merge(log, (; message = "$(Dates.format(now(), date_format)) $(log.message)"))
     end
 
+    patientLogFilePath = joinpath(getLogDir(),"$patientCodeName.log")
     patientETLLogger = TeeLogger(
-        FileLogger(joinpath(getLogDir(),"$patientCodeName.log")) |> 
+        FileLogger(patientLogFilePath) |> 
         n -> TransformerLogger(n) do log
             merge(log, (; message = "$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS")) $(log.message)"))
         end,
         ConsoleLogger(stdout, Logging.Debug)
     )
-    ETL.processPatientRawHistory(df,patientETLLogger)
+    refinedHistory::RefinedHistory = ETL.processPatientRawHistory(df, patientETLLogger)
+
+    # If refined history is missing it means that a problem happened
+    if ismissing(refinedHistory) 
+        @error ("Problem while refining history of patient[$patientCodeName]."
+        * "See log[$patientLogFilePath]")
+    end
+
+    return refinedHistory
 end
 
 function ETL.processPatientRawHistory(df::DataFrame,patientETLLogger::Logging.AbstractLogger)
@@ -133,8 +152,6 @@ function ETL.processPatientRawHistory(df::DataFrame)
     # ########################## #
     df2ndPass =  ETL.combineRefinedWindows(refinedWindows)
 
-    @info "nrow(df1stPass) == nrow(df2ndPass)[$(nrow(df1stPass) == nrow(df2ndPass))]"
-
     # Join on startTime and 
     df = innerjoin(
         df1stPass, 
@@ -175,8 +192,6 @@ function ETL.orderColmunsOfRefinedHistory!(df::DataFrame)
     orderedNames = [firstNames...,filter(x -> x ∉ firstNames,orderedNames)...]
 
     select!(df, orderedNames)
-
-    @info orderedNames
 
     df
 end
@@ -290,8 +305,7 @@ function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
     refiningFunctions = ETL.get1stPassRefiningFunctions(_module)
 
     for fct in refiningFunctions
-        @info "Call $_module.$fct"
-
+        
         fctResultTmp = fct(window)
 
         ETL.enrichModuleResultWithFunctionResult!(moduleRes,fct,fctResultTmp)
@@ -444,34 +458,31 @@ function ETL.refreshCache!(
     ETL.updateCache!(
         cache, 
         :sameWindowNorepinephrineMeanMgHeure, 
-        ICUDYNUtil.sameWindowValue(
-            row,
-            :Prescription_norepinephrineDrip)
+        sameWindowValue(row,:Prescription_norepinephrineDrip)
     )
 
     # Same window EpinephrineMeanMgHeure
     ETL.updateCache!(
         cache, 
         :sameWindowEpinephrineMeanMgHeure, 
-        ICUDYNUtil.sameWindowValue(
-            row,
-            :Prescription_epinephrineDrip)
+        sameWindowValue(row,:Prescription_epinephrineDrip)
     )
 
     # Same window DobutamineMeanMgHeure
     ETL.updateCache!(
         cache, 
         :sameWindowDobutamineMeanGammaKgMinute, 
-        ICUDYNUtil.sameWindowValue(
-            row,
-            :Prescription_dobutamineDrip)
+        sameWindowValue(row,:Prescription_dobutamineDrip)
     )
 
     # Any sedative ?
     anySedative = ETL.getCachedVariable(cache, :anySedative)
-    if ismissing(anySedative)
-        anySedative = ICUDYNUtil.firstNonMissingValue(:Prescription_sedative, refinedWindows) 
-        ETL.updateCache!(cache, :anySedative, anySedative)
+    if ismissing(anySedative)        
+        # NOTE: Security check, the column may not exist
+        if hasproperty(refinedWindows,:Prescription_sedative)
+            anySedative = firstNonMissingValue(:Prescription_sedative, refinedWindows) 
+            ETL.updateCache!(cache, :anySedative, anySedative)
+        end
     end
 
 end

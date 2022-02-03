@@ -63,8 +63,8 @@ module Model
    export RefiningFunctionAllowedValueType, 
           IRefiningFunctionResult, RefiningFunctionResult, 
           IRefinedWindowModuleResults, RefinedWindowModuleResults, 
-          RefinedWindow
-   using Dates, TimeZones, UUIDs, PostgresORM
+          RefinedWindow, RefinedHistory
+   using Dates, TimeZones, UUIDs, PostgresORM, DataFrames
    include("Model-protected/ETL-aliases.jl")
 
 end

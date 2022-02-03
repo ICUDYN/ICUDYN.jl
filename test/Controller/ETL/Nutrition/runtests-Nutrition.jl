@@ -10,6 +10,14 @@ include("../../../runtests-prerequisite.jl")
     )
     ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window)
 
+    # Parenteral
+    window = DataFrame(
+        attributeDictionaryPropName = ["toto.intakeVolume","a","b","toto.intakeVolume"],
+        verboseForm = ["Perikabiven","a","b","Olimel"],
+        terseForm = ["null","","","0"]
+    )
+    ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window)
+
     # Enteral
     window = DataFrame(
         attributeDictionaryPropName = ["toto.intakeVolume","a","b","toto.intakeVolume"],

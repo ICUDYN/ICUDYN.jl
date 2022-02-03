@@ -15,3 +15,14 @@ Calcul des calories (KCal ou Cal?)
 ## Prescription
 Drip et discrite = ?
 Antiplatelet molecules => problemes pour l'instant ?
+
+## Dialysis
+Bien vérifier que l'on a bien les bonnes périodes de dyalise
+
+## Physiological 
+ETL.Physiological.computeNeuroGlasgow
+ETL.Physiological.computeNeuroRamsay
+
+Utilisation de anySedative
+
+## Données haute frequence

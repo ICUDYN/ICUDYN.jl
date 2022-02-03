@@ -699,7 +699,7 @@ function ICUDYNUtil.exportToExcel(data::Any ;filepath = "$(tempname()).xlsx")
 end
 
 function ICUDYNUtil.exportToExcel(
-    dfs::Vector{DataFrame},
+    dfs::Vector{Union{Missing,DataFrame}},
     sheetsNames::Vector{String}
     ;filepath = "$(tempname()).xlsx"
     )

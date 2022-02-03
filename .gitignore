@@ -12,3 +12,5 @@ tmp/*
 
 debug-scripts/*
 !debug-scripts/.gitkeep
+
+logs/*
