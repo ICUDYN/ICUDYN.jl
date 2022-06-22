@@ -19,3 +19,6 @@ logs/*
 
 # Ignore Documenter.jl build dir
 docs/build/
+
+# Ignore coverage files
+*.cov
