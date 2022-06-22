@@ -10,3 +10,4 @@ A Julia project for the server side of the ICUDYN platform
 [docs-latest-url]: https://icudyn.github.io/ICUDYN.jl/
 
 bonjour
+au revoir
