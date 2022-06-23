@@ -102,6 +102,9 @@ function ICUDYNUtil.openDBConn()
     return conn
 end
 
+function ICUDYNUtil.openDBConnICCA()
+end
+
 function ICUDYNUtil.openDBConnAndBeginTransaction()
     conn = ICUDYNUtil.openDBConn()
     ICUDYNUtil.beginDBTransaction(conn)
@@ -120,10 +123,13 @@ function ICUDYNUtil.rollbackDBTransaction(conn)
     execute(conn, "ROLLBACK;")
 end
 
-function ICUDYNUtil.closeDBConn(conn)
+function ICUDYNUtil.closeDBConn(conn::LibPQ.Connection)
     close(conn)
 end
 
+function ICUDYNUtil.closeDBConn(conn::ODBC.Connection)
+    DBInterface.close!(conn)
+end
 
 function ICUDYNUtil.json2Entity(datatype::DataType,
                      dict::Dict{String,Any})
@@ -776,7 +782,7 @@ function ICUDYNUtil.getMostFrequentValue(vec::Vector)
 end
 
 function ICUDYNUtil.getRefiningModules()
-    [ETL.Misc, ETL.Physiological, ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Nutrition, 
+    [ETL.Misc, ETL.Physiological, ETL.Biology, ETL.Dialysis, ETL.FluidBalance, ETL.Nutrition,
         ETL.Prescription, ETL.Transfusion, ETL.Ventilation]
 end
 

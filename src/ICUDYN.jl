@@ -51,7 +51,7 @@ module ICUDYNUtil
              getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
              getNumericValueFromWindowTerseForm, rmAccentsAndLowercaseAndStrip,
              getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict,
-             firstNonMissingValue, sameWindowValue, closestNonMissingValue, 
+             firstNonMissingValue, sameWindowValue, closestNonMissingValue,
              closestNonMissingValueInCurrentOrPreviousWindows,
              closestNonMissingValueInCurrentOrNextWindows
 
@@ -60,9 +60,9 @@ module ICUDYNUtil
 end
 
 module Model
-   export RefiningFunctionAllowedValueType, 
-          IRefiningFunctionResult, RefiningFunctionResult, 
-          IRefinedWindowModuleResults, RefinedWindowModuleResults, 
+   export RefiningFunctionAllowedValueType,
+          IRefiningFunctionResult, RefiningFunctionResult,
+          IRefinedWindowModuleResults, RefinedWindowModuleResults,
           RefinedWindow, RefinedHistory
    using Dates, TimeZones, UUIDs, PostgresORM, DataFrames
    include("Model-protected/ETL-aliases.jl")
@@ -118,7 +118,7 @@ module Controller
       module Prescription
          include("Controller/ETL/Prescription/Prescription-def.jl")
       end
-      
+
     end
 
 end # ENDOF Controller
@@ -138,5 +138,16 @@ include("Controller/ETL/ETL-imp.jl")
 
 "ICUDYN configuration (of type `ConfigParse`)"
 config = ICUDYNUtil.loadConf()
+
+ODBC.adddriver("MS SQL Driver", "/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.0.so.1.1")
+ODBC.adddsn(
+    "ICCA",
+    "MS SQL Driver"
+    ;SERVER=getICCADatabaseHost(),
+    DATABASE =getICCADatabaseName(),
+    UID=getICCADatabaseUID(),
+    PWD=getICCADatabaseUserPassword(),
+    TrustServerCertificate="yes"
+    )
 
 end # module ICUDYN

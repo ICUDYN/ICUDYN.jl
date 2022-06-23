@@ -22,3 +22,8 @@ docs/build/
 
 # Ignore coverage files
 *.cov
+
+# Ignore configuration files
+conf/*
+!conf/.gitkeep
+!conf/tpl.conf
