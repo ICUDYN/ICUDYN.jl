@@ -139,15 +139,5 @@ include("Controller/ETL/ETL-imp.jl")
 "ICUDYN configuration (of type `ConfigParse`)"
 config = ICUDYNUtil.loadConf()
 
-ODBC.adddriver("MS SQL Driver", "/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.0.so.1.1")
-ODBC.adddsn(
-    "ICCA",
-    "MS SQL Driver"
-    ;SERVER=getICCADatabaseHost(),
-    DATABASE =getICCADatabaseName(),
-    UID=getICCADatabaseUID(),
-    PWD=getICCADatabaseUserPassword(),
-    TrustServerCertificate="yes"
-    )
 
 end # module ICUDYN

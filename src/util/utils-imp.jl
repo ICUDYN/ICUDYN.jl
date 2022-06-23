@@ -1,4 +1,5 @@
 include("utils-window-imp.jl")
+include("utils-dbconn.jl")
 
 # see ~/.julia/config/startup.jl for setting the environment variable
 function ICUDYNUtil.loadConf()::Union{ConfParse,Missing}
@@ -17,6 +18,20 @@ function ICUDYNUtil.loadConf()::Union{ConfParse,Missing}
     conf = ConfParse(conf_file)
     parse_conf!(conf)
     return(conf)
+
+end
+
+"""
+
+    updateConf()::Bool
+
+"""
+function ICUDYNUtil.updateConf()::Bool
+
+    # NOTE: It would be easier to do `parse_conf!(Medilegist.translation)` but this errors
+    #        with SystemError: seek: Illegal seek
+    conf = ICUDYNUtil.loadConf()
+    ConfParser.merge!(ICUDYN.config,conf)
 
 end
 
@@ -80,56 +95,6 @@ function ICUDYNUtil.getTimeZone()
     TimeZones.TimeZone("Europe/Paris")
 end
 
-function ICUDYNUtil.openDBConn()
-    database = getConf("database","database")
-    user = getConf("database","user")
-    host = getConf("database","host")
-    port = getConf("database","port")
-    password = getConf("database","password")
-
-    conn = LibPQ.Connection("host=$(host)
-                             port=$(port)
-                             dbname=$(database)
-                             user=$(user)
-                             password=$(password)
-                             "; throw_error=true)
-    # We want Postgresql planner to optimize the query over the partitions
-    # https://www.postgresql.org/docs/12/ddl-partitioning.html#DDL-PARTITION-PRUNING
-    # The property is set for the SESSION
-    execute(conn, "SET enable_partition_pruning = on;")
-    execute(conn, "SET TIMEZONE='Europe/Paris';")
-
-    return conn
-end
-
-function ICUDYNUtil.openDBConnICCA()
-end
-
-function ICUDYNUtil.openDBConnAndBeginTransaction()
-    conn = ICUDYNUtil.openDBConn()
-    ICUDYNUtil.beginDBTransaction(conn)
-    return conn
-end
-
-function ICUDYNUtil.beginDBTransaction(conn)
-    execute(conn, "BEGIN;")
-end
-
-function ICUDYNUtil.commitDBTransaction(conn)
-    execute(conn, "COMMIT;")
-end
-
-function ICUDYNUtil.rollbackDBTransaction(conn)
-    execute(conn, "ROLLBACK;")
-end
-
-function ICUDYNUtil.closeDBConn(conn::LibPQ.Connection)
-    close(conn)
-end
-
-function ICUDYNUtil.closeDBConn(conn::ODBC.Connection)
-    DBInterface.close!(conn)
-end
 
 function ICUDYNUtil.json2Entity(datatype::DataType,
                      dict::Dict{String,Any})
