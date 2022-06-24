@@ -1,5 +1,6 @@
 function preparePatientsFromRawExcelFile end
 function getPatientDFFromExcel end
+function getPatientDFFromDB end
 function cutPatientDF end
 function initializeWindow end
 function refineWindow1stPass! end

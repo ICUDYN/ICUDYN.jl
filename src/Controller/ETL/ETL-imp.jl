@@ -23,25 +23,25 @@ function ETL.preparePatientsFromRawExcelFile(
     patientsCodeNames::Vector{String}
     ;filepath = "$(tempname()).xlsx"
 )
-    # NOTE: Some implementations of processPatientRawHistoryWithFileLogging return missing 
+    # NOTE: Some implementations of processPatientRawHistoryWithFileLogging return missing
     #       when an error is raised
     patientsPreparedData::Vector{Union{DataFrame,Missing}} = DataFrame[]
 
     for patientCodeName in patientsCodeNames
         srcDF = ETL.getPatientDFFromExcel(patientCodeName)
-        
+
         push!(patientsPreparedData,
                 ETL.processPatientRawHistoryWithFileLogging(srcDF,patientCodeName) |>
                 n -> begin
                     @info size(n)
                     n
                 end
-                )        
-             
+                )
+
     end
     @info length(patientsPreparedData)
 
-    filter!(x -> !ismissing(x),patientsPreparedData) 
+    filter!(x -> !ismissing(x),patientsPreparedData)
     @info length(patientsPreparedData)
 
 
@@ -70,6 +70,24 @@ function ETL.getPatientDFFromExcel(patientCodeName::String)
     return df
 end
 
+function ETL.getPatientDFFromDB(patientCodeName::String)
+    patientsDir = ICUDYNUtil.getDataInputDir()
+    patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
+    isfile(patientFilename)
+    df = XLSX.readtable(patientFilename,1) |> n -> DataFrame(n...)
+
+    # Only for excel file inputs
+    if !isa(df.chartTime, Vector{DateTime})
+        df.chartTime = ICUDYNUtil.convertStringToDateTime.(df.chartTime)
+    end
+
+    if !isa(df.storeTime, Vector{DateTime})
+        df.storeTime = ICUDYNUtil.convertStringToDateTime.(df.storeTime)
+    end
+
+    return df
+end
+
 function ETL.processPatientRawHistoryWithFileLogging(df::DataFrame,patientCodeName::String)
 
     timestamp_logger(logger) = TransformerLogger(logger) do log
@@ -78,7 +96,7 @@ function ETL.processPatientRawHistoryWithFileLogging(df::DataFrame,patientCodeNa
 
     patientLogFilePath = joinpath(getLogDir(),"$patientCodeName.log")
     patientETLLogger = TeeLogger(
-        FileLogger(patientLogFilePath) |> 
+        FileLogger(patientLogFilePath) |>
         n -> TransformerLogger(n) do log
             merge(log, (; message = "$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS")) $(log.message)"))
         end,
@@ -87,7 +105,7 @@ function ETL.processPatientRawHistoryWithFileLogging(df::DataFrame,patientCodeNa
     refinedHistory::RefinedHistory = ETL.processPatientRawHistory(df, patientETLLogger)
 
     # If refined history is missing it means that a problem happened
-    if ismissing(refinedHistory) 
+    if ismissing(refinedHistory)
         @error ("Problem while refining history of patient[$patientCodeName]."
         * "See log[$patientLogFilePath]")
     end
@@ -100,8 +118,8 @@ function ETL.processPatientRawHistory(df::DataFrame,patientETLLogger::Logging.Ab
         try
             return ETL.processPatientRawHistory(df)
         catch e
-            @error "Error while processing patient"          
-            @error formatExceptionAndStackTrace(e,stacktrace(catch_backtrace()))            
+            @error "Error while processing patient"
+            @error formatExceptionAndStackTrace(e,stacktrace(catch_backtrace()))
             return missing
         end
     end
@@ -152,11 +170,11 @@ function ETL.processPatientRawHistory(df::DataFrame)
     # ########################## #
     df2ndPass =  ETL.combineRefinedWindows(refinedWindows)
 
-    # Join on startTime and 
+    # Join on startTime and
     df = innerjoin(
-        df1stPass, 
-        df2ndPass, 
-        on = :startTime, 
+        df1stPass,
+        df2ndPass,
+        on = :startTime,
         makeunique = true # So that the column endTime (in both dataframe) is not a problem
         )
 
@@ -212,10 +230,10 @@ function ETL.combineRefinedWindows(refinedWindows::Vector{RefinedWindow})
         push!(windowsDFs,windowDF)
     end
     df = vcat(windowsDFs..., cols=:union)
-    
+
     # Rename for convenience
     DataFrames.rename!(df, :Misc_startTime => :startTime, :Misc_endTime => :endTime)
-    
+
     return df
 end
 
@@ -305,11 +323,11 @@ function ETL.refineWindow1stPass(window::DataFrame, _module::Module)
     refiningFunctions = ETL.get1stPassRefiningFunctions(_module)
 
     for fct in refiningFunctions
-        
+
         fctResultTmp = fct(window)
 
         ETL.enrichModuleResultWithFunctionResult!(moduleRes,fct,fctResultTmp)
-       
+
     end
 
     return moduleRes
@@ -318,8 +336,8 @@ end
 function ETL.enrichModuleResultWithFunctionResult!(
     moduleRes::IRefinedWindowModuleResults,
     fct::Function,
-    fctRes::IRefiningFunctionResult)    
-    
+    fctRes::IRefiningFunctionResult)
+
     # Add the result of the function to the results of the refining module
     ICUDYNUtil.mergeResultsDictionaries!(moduleRes,fctRes)
 
@@ -330,7 +348,7 @@ function ETL.enrichModuleResultWithFunctionResult!(
     fct::Function,
     fctRes::Union{String,Number,Missing,DateTime})
 
-    varName = string(fct) |> x -> replace(x,"compute" => "") |> lowercasefirst 
+    varName = string(fct) |> x -> replace(x,"compute" => "") |> lowercasefirst
 
     # Add the result of the function to the results of the refining module
     ICUDYNUtil.mergeResultsDictionaries!(moduleRes, Dict(Symbol(varName) => fctRes))
@@ -344,7 +362,7 @@ function ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
     fct::Function,
     fctResult::Union{RefiningFunctionAllowedValueType,IRefiningFunctionResult})
 
-    if !haskey(refinedWindow,_module)        
+    if !haskey(refinedWindow,_module)
         refinedWindow[_module] = RefinedWindowModuleResults()
     end
 
@@ -359,19 +377,19 @@ function ETL.refineWindow2ndPass!(
     rawWindow::DataFrame,
     refinedWindows1stPass::DataFrame,
     cache::Dict{Symbol, RefiningFunctionAllowedValueType}
-    )    
+    )
 
     ETL.refreshCache!(cache,refinedWindows1stPass,first(rawWindow).chartTime)
 
-    # Compute window startTime    
+    # Compute window startTime
     fctResult = ETL.Misc.computeStartTime(rawWindow)
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
         refinedWindow,
         ETL.Misc,
         ETL.Misc.computeStartTime,
         fctResult)
-    
-    # Compute window endTime    
+
+    # Compute window endTime
     fctResult = ETL.Misc.computeEndTime(rawWindow)
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
         refinedWindow,
@@ -381,8 +399,8 @@ function ETL.refineWindow2ndPass!(
 
     # Compute variable amine agent (Prescription)
     fctResult = passmissing(ETL.Prescription.computeAmineAgentsAdditionalVars)(
-        ETL.getCachedVariable(cache,:sameWindowNorepinephrineMeanMgHeure), 
-        ETL.getCachedVariable(cache,:sameWindowEpinephrineMeanMgHeure), 
+        ETL.getCachedVariable(cache,:sameWindowNorepinephrineMeanMgHeure),
+        ETL.getCachedVariable(cache,:sameWindowEpinephrineMeanMgHeure),
         ETL.getCachedVariable(cache,:sameWindowDobutamineMeanGammaKgMinute),
         ETL.getCachedVariable(cache,:weightAtAdmission))
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
@@ -408,15 +426,15 @@ function ETL.refineWindow2ndPass!(
     fctResult = passmissing(ETL.Physiological.computeNeuroGlasgow)(
         rawWindow,
         ETL.getCachedVariable(cache, :anySedative)
-    )    
+    )
     ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
         refinedWindow,
         ETL.Physiological,
         ETL.Physiological.computeNeuroGlasgow,
-        fctResult)   
-    
+        fctResult)
+
     return refinedWindow
-    
+
 end
 
 function ETL.refreshCache!(
@@ -429,58 +447,58 @@ function ETL.refreshCache!(
     # Weight at admission (first recorded weight)
     weightAtAdmission = ETL.getCachedVariable(cache, :weightAtAdmission)
     if ismissing(weightAtAdmission)
-        weightAtAdmission = firstNonMissingValue(:Physiological_weight, refinedWindows) 
+        weightAtAdmission = firstNonMissingValue(:Physiological_weight, refinedWindows)
         ETL.updateCache!(cache, :weightAtAdmission, weightAtAdmission)
     end
 
     # Age (first recorded age)
     age = ETL.getCachedVariable(cache, :age)
     if ismissing(age)
-        age = firstNonMissingValue(:Physiological_age, refinedWindows) 
+        age = firstNonMissingValue(:Physiological_age, refinedWindows)
         ETL.updateCache!(cache, :age, age)
     end
 
     # Gender
     gender = ETL.getCachedVariable(cache, :gender)
     if ismissing(gender)
-        gender = firstNonMissingValue(:Physiological_gender, refinedWindows) 
+        gender = firstNonMissingValue(:Physiological_gender, refinedWindows)
         ETL.updateCache!(cache, :gender, gender)
     end
 
     # Last recorded weight
-    lastWeight = sameWindowValue(row, :Physiological_weight)    
+    lastWeight = sameWindowValue(row, :Physiological_weight)
     if !ismissing(lastWeight)
         #if weight is in the current window, update it in cache, even if it's already in
         ETL.updateCache!(cache, :lastWeight, lastWeight)
-    end   
-    
+    end
+
     # Same window NorepinephrineMeanMgHeure
     ETL.updateCache!(
-        cache, 
-        :sameWindowNorepinephrineMeanMgHeure, 
+        cache,
+        :sameWindowNorepinephrineMeanMgHeure,
         sameWindowValue(row,:Prescription_norepinephrineDrip)
     )
 
     # Same window EpinephrineMeanMgHeure
     ETL.updateCache!(
-        cache, 
-        :sameWindowEpinephrineMeanMgHeure, 
+        cache,
+        :sameWindowEpinephrineMeanMgHeure,
         sameWindowValue(row,:Prescription_epinephrineDrip)
     )
 
     # Same window DobutamineMeanMgHeure
     ETL.updateCache!(
-        cache, 
-        :sameWindowDobutamineMeanGammaKgMinute, 
+        cache,
+        :sameWindowDobutamineMeanGammaKgMinute,
         sameWindowValue(row,:Prescription_dobutamineDrip)
     )
 
     # Any sedative ?
     anySedative = ETL.getCachedVariable(cache, :anySedative)
-    if ismissing(anySedative)        
+    if ismissing(anySedative)
         # NOTE: Security check, the column may not exist
         if hasproperty(refinedWindows,:Prescription_sedative)
-            anySedative = firstNonMissingValue(:Prescription_sedative, refinedWindows) 
+            anySedative = firstNonMissingValue(:Prescription_sedative, refinedWindows)
             ETL.updateCache!(cache, :anySedative, anySedative)
         end
     end
@@ -501,9 +519,7 @@ function ETL.getCachedVariable(
 
     if haskey(cache,varName)
         return cache[varName]
-    else 
+    else
         return missing
     end
 end
-
-
