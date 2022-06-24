@@ -132,3 +132,46 @@ end
         ]
 
 end
+
+
+@testset "Test ETL.getPatientIDsInSrcDB" begin
+
+    @test ETL.getPatientIDsInSrcDB(
+        ICUDYNUtil.getConf("test","patient_firstname"),
+        ICUDYNUtil.getConf("test","patient_lastname"),
+        Date(ICUDYNUtil.getConf("test","patient_birthdate"))
+    ) |> n -> n isa Vector{Integer}
+
+end
+
+@testset "Test ETL.getPatientDFFromSrcDB" begin
+
+    @test ETL.getPatientRawDFFromSrcDB([12695,13022])
+
+end
+
+
+@testset "Test ETL.getPatientsCurrentlyInUnitFromSrcDB" begin
+
+    grs = ETL.getPatientsCurrentlyInUnitFromSrcDB() |>
+    n -> groupby(n, [:firstname,:lastname,:birthdate])
+
+    dfClean = DataFrame()
+    for g in grs
+        dfTmp = DataFrame(
+            patientIDs = [g.encounterId],
+            firstname = first(g).firstname,
+            lastname = first(g).lastname,
+            birthdate = first(g).birthdate,
+            inTimes = [g.inTime],
+            outTimes = [g.outTime]
+        )
+        append!(
+            dfClean,
+            dfTmp
+        )
+    end
+
+    dfClean
+
+end

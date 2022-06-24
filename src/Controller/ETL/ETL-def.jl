@@ -1,6 +1,8 @@
 function preparePatientsFromRawExcelFile end
 function getPatientDFFromExcel end
-function getPatientDFFromDB end
+function getPatientRawDFFromSrcDB end
+function getPatientsCurrentlyInUnitFromSrcDB end
+function getPatientIDsInSrcDB end
 function cutPatientDF end
 function initializeWindow end
 function refineWindow1stPass! end

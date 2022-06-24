@@ -70,22 +70,87 @@ function ETL.getPatientDFFromExcel(patientCodeName::String)
     return df
 end
 
-function ETL.getPatientDFFromDB(patientCodeName::String)
-    patientsDir = ICUDYNUtil.getDataInputDir()
-    patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
-    isfile(patientFilename)
-    df = XLSX.readtable(patientFilename,1) |> n -> DataFrame(n...)
 
-    # Only for excel file inputs
-    if !isa(df.chartTime, Vector{DateTime})
-        df.chartTime = ICUDYNUtil.convertStringToDateTime.(df.chartTime)
+function ETL.getPatientIDsInSrcDB(
+    firstname::String,
+    lastname::String,
+    birthdate::Date)::Vector{Integer}
+
+    queryString = "
+        SELECT DISTINCT
+            vc.firstname,
+            vc.lastname,
+            vc.encounterid,
+            convert(varchar,vc.dateOfBirth,121) AS terseForm
+        FROM dbo.V_Census vc
+        WHERE vc.firstname = ? AND vc.lastname = ? AND vc.dateOfBirth = ?"
+
+    params = [firstname, lastname, birthdate]
+
+    dbconn = ICUDYNUtil.openDBConnICCA()
+
+    try
+        df = DBInterface.execute(dbconn, queryString,params) |> DataFrame
+        return df.encounterid
+    catch e
+        rethrow(e)
+    finally
+        ICUDYNUtil.closeDBConn(dbconn)
     end
 
-    if !isa(df.storeTime, Vector{DateTime})
-        df.storeTime = ICUDYNUtil.convertStringToDateTime.(df.storeTime)
+
+end
+
+
+function ETL.getPatientRawDFFromSrcDB(patientIDs::Vector{T} where T <: Integer)
+
+    queryString = open("src/queries/get-patient-raw-data-from-src-db-mini.sql","r") do io
+        read(io, String)
+    end |>
+    n -> replace(n, "COMMA_SEPARATED_IDS" => string.(patientIDs) |> t -> join(t,","))
+
+    dbconn = ICUDYNUtil.openDBConnICCA()
+
+    try
+        df = DBInterface.execute(dbconn, queryString) |> DataFrame
+        return df
+    catch e
+        rethrow(e)
+    finally
+        ICUDYNUtil.closeDBConn(dbconn)
     end
 
-    return df
+end
+
+
+function ETL.getPatientsCurrentlyInUnitFromSrcDB()
+
+    queryString = "
+        SELECT
+            TOP 5
+            vc.encounterId,
+            vc.inTime,
+            vc.outTime,
+            vc.firstname,
+            vc.lastname,
+            vc.dateOfBirth AS birthdate
+        FROM dbo.V_Census vc
+        WHERE vc.outTime IS NULL"
+
+
+    dbconn = ICUDYNUtil.openDBConnICCA()
+
+    try
+        df = DBInterface.execute(dbconn, queryString) |> DataFrame
+
+
+        return df
+    catch e
+        rethrow(e)
+    finally
+        ICUDYNUtil.closeDBConn(dbconn)
+    end
+
 end
 
 function ETL.processPatientRawHistoryWithFileLogging(df::DataFrame,patientCodeName::String)
