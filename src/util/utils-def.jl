@@ -1,6 +1,7 @@
 include("utils-window-def.jl")
 
 function loadConf end
+function updateConf end
 function getConf end
 
 function getLogDir end
@@ -35,6 +36,7 @@ rapport à l'UTC (Exemple : 'UTC+1').
 function getTimeZone end
 
 function openDBConn end
+function openDBConnICCA end
 function openDBConnAndBeginTransaction end
 function beginDBTransaction end
 function commitDBTransaction end
