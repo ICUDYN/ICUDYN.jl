@@ -134,9 +134,9 @@ end
 end
 
 
-@testset "Test ETL.getPatientIDsInSrcDB" begin
+@testset "Test ETL.getPatientIDsFromSrcDB" begin
 
-    @test ETL.getPatientIDsInSrcDB(
+    @test ETL.getPatientIDsFromSrcDB(
         ICUDYNUtil.getConf("test","patient_firstname"),
         ICUDYNUtil.getConf("test","patient_lastname"),
         Date(ICUDYNUtil.getConf("test","patient_birthdate"))
@@ -146,32 +146,36 @@ end
 
 @testset "Test ETL.getPatientDFFromSrcDB" begin
 
-    @test ETL.getPatientRawDFFromSrcDB([12695,13022])
+    df = ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
+        ETL.getPatientRawDFFromSrcDB(
+            [12695,13022],
+            true, # use cache?
+            dbconn
+            )
+    end
 
 end
 
 
 @testset "Test ETL.getPatientsCurrentlyInUnitFromSrcDB" begin
 
-    grs = ETL.getPatientsCurrentlyInUnitFromSrcDB() |>
-    n -> groupby(n, [:firstname,:lastname,:birthdate])
-
-    dfClean = DataFrame()
-    for g in grs
-        dfTmp = DataFrame(
-            patientIDs = [g.encounterId],
-            firstname = first(g).firstname,
-            lastname = first(g).lastname,
-            birthdate = first(g).birthdate,
-            inTimes = [g.inTime],
-            outTimes = [g.outTime]
-        )
-        append!(
-            dfClean,
-            dfTmp
-        )
+    ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
+        ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn)
     end
 
-    dfClean
+end
+
+@testset "Test ETL.getPatientBasicInfoFromSrcDB" begin
+    dbconn = ICUDYNUtil.openSrcDBConn()
+    try
+        ETL.getPatientBasicInfoFromSrcDB(
+            parse(Int,ICUDYNUtil.getConf("test","patient_src_db_id")),
+            dbconn
+            )
+    catch e
+        rethrow(e)
+    finally
+        ICUDYNUtil.closeDBConn(dbconn)
+    end
 
 end

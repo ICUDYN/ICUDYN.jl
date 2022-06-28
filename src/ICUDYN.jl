@@ -60,13 +60,13 @@ module ICUDYNUtil
 end
 
 module Model
-   export RefiningFunctionAllowedValueType,
-          IRefiningFunctionResult, RefiningFunctionResult,
-          IRefinedWindowModuleResults, RefinedWindowModuleResults,
-          RefinedWindow, RefinedHistory
-   using Dates, TimeZones, UUIDs, PostgresORM, DataFrames
-   include("Model-protected/ETL-aliases.jl")
-
+    export RefiningFunctionAllowedValueType,
+           IRefiningFunctionResult, RefiningFunctionResult,
+           IRefinedWindowModuleResults, RefinedWindowModuleResults,
+           RefinedWindow, RefinedHistory, PatientInSrcDB
+    using Dates, TimeZones, UUIDs, PostgresORM, DataFrames
+    include("Model-protected/ETL-aliases.jl")
+    include("Model-protected/PatientInSrcDB.jl")
 end
 
 

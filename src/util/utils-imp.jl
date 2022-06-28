@@ -1,5 +1,6 @@
 include("utils-window-imp.jl")
 include("utils-dbconn.jl")
+include("utils-do-functions.jl")
 
 # see ~/.julia/config/startup.jl for setting the environment variable
 function ICUDYNUtil.loadConf()::Union{ConfParse,Missing}
@@ -620,6 +621,10 @@ function ICUDYNUtil.checkIfContainsNonStrict(hayStack::String, needle::String)
     return contains(hayStack,needle)
 end
 
+function ICUDYNUtil.checkIfContainsNonStrict(hayStack::Missing, needle::String)
+    return false
+end
+
 function ICUDYNUtil.isMissing(str::String)
     if isempty(str) || lowercase(str) in ["null"]
         return true
@@ -788,4 +793,25 @@ function ICUDYNUtil.checkIfDataframesAreEqual(_new::DataFrame, _control::DataFra
         end
     end
     return result
+end
+
+function ICUDYNUtil.getPatientRawCacheFilePath(firstname::String,lastname::String, birthdate::Date)
+
+    patientCacheDir = joinpath(
+        "tmp",
+        "cache"
+        )
+    mkpath(patientCacheDir)
+
+    filepath = joinpath(
+        patientCacheDir,
+        string(ICUDYNUtil.getPatientPrettyCodename(firstname,lastname, birthdate),"_raw.jld")
+    )
+
+    return filepath
+
+end
+
+function ICUDYNUtil.getPatientPrettyCodename(firstname::String,lastname::String, birthdate::Date)
+    return "$(firstname)_$(lastname)_$(birthdate)"
 end

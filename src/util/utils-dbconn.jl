@@ -21,7 +21,7 @@ function ICUDYNUtil.openDBConn()
     return conn
 end
 
-function ICUDYNUtil.openDBConnICCA()
+function ICUDYNUtil.openSrcDBConn()
 
     if !haskey(ODBC.dsns(),"ICCA")
         ODBC.adddriver("MS SQL Driver", getConf("database-icca","driver_path"))

@@ -28,6 +28,7 @@ function ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window::DataFrame)
         n -> round(n;digits = 2)
 
     parenteralVolSmofkabivenOlimel = window |>
+        n -> filter(x -> !isMissing(x.verboseForm), n)  |>
         n -> filter(
             x -> !(isnothing ∘ match)(r"(?:Smofkabiven|Olimel)"i,x.verboseForm),
             n) |>
@@ -79,6 +80,7 @@ function ETL.Nutrition.computeFeedingTypeVolumeAndCalories(window::DataFrame)
         n -> round(n;digits = 2)
 
     enteralVolSondalis = window |>
+        n -> filter(x -> !isMissing(x.verboseForm), n)  |>
         n -> filter(
             x -> !(isnothing ∘ match)(r"sondalis"i,x.verboseForm),
             n) |>

@@ -36,12 +36,18 @@ rapport à l'UTC (Exemple : 'UTC+1').
 function getTimeZone end
 
 function openDBConn end
-function openDBConnICCA end
+function openSrcDBConn end
 function openDBConnAndBeginTransaction end
 function beginDBTransaction end
 function commitDBTransaction end
 function rollbackDBTransaction end
 function closeDBConn end
+
+# Do-wrapper functions
+function createSrcDBConnAndExecute end
+function createDBConnAndExecute end
+function createDBConnAndExecuteWithTransaction end
+function executeOnWorkerTwoOrHigher end
 
 function json2Entity end
 
@@ -155,3 +161,6 @@ function checkIfDataframesAreEqual end
 
 function convertToFloatIfPossible end
 function getValueOfError end
+
+function getPatientPrettyCodename end
+function getPatientRawCacheFilePath end

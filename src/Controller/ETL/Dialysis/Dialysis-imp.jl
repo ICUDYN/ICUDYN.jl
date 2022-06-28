@@ -45,12 +45,12 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 
         continous1stCase =
             window |>
-            n -> filter(r -> r.interventionPropName == "PtIntakeOrder_Interrompre",n) |>
+            n -> filter(r -> r.interventionPropName === "PtIntakeOrder_Interrompre",n) |>
             n -> filter(r -> contains(r.attributeLongLabel,"CVVHF") ,n)
 
         continuous2ndCase =
             window |>
-            n -> filter(r -> r.interventionBaseLongLabel == "PtAssessment_Machine HDF",n)
+            n -> filter(r -> r.interventionBaseLongLabel === "PtAssessment_Machine HDF",n)
 
         if !isempty(continous1stCase) || !isempty(continuous2ndCase)
             started = true
@@ -58,13 +58,13 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 
             # Get the duration
             endTime = continous1stCase |>
-                n -> filter(r -> r.attributeLongLabel == "PtIntakeOrder_2.a. CVVHF.Interface Details.Effective Time",n) |>
+                n -> filter(r -> r.attributeLongLabel === "PtIntakeOrder_2.a. CVVHF.Interface Details.Effective Time",n) |>
                 n -> n.terseForm |>
                 n -> if isempty(n) missing else DateTime(first(n),"d/m/y HH:MM") end
 
             startTime = continous1stCase |>
-                n -> filter(r -> r.attributeLongLabel == "PtIntakeOrder_2.a. CVVHF.Interface Details.Effective Time",n) |>
-                n -> n.chartTime |> 
+                n -> filter(r -> r.attributeLongLabel === "PtIntakeOrder_2.a. CVVHF.Interface Details.Effective Time",n) |>
+                n -> n.chartTime |>
                 n -> if isempty(n) missing else first(n) end
 
 
@@ -87,7 +87,7 @@ function ETL.Dialysis.computeDialysisTypeAndDuration(window::DataFrame)
 end
 
 function ETL.Dialysis.computeDialysisMolecule(window::DataFrame)
-  
+
     res = ICUDYNUtil.getNonMissingValues(
         window,
         :attributeDictionaryPropName,

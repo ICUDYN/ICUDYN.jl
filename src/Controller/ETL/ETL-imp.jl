@@ -11,145 +11,77 @@ include("./Biology/Biology-imp.jl")
 include("./Prescription/Prescription-imp.jl")
 include("./Nutrition/Nutrition-imp.jl")
 
+include("getPatientIDsFromSrcDB.jl")
+include("preparePatientsAndExportToExcel.jl")
+include("preparePatientsCurrentlyInUnitAndExportToExcel.jl")
+include("getPatientsCurrentlyInUnitFromSrcDB.jl")
+
+include("deprecated/excel-deprecated.jl")
 
 # ################################ #
 # Main functions of the ETL module #
 # ################################ #
-# function ETL.getPatientDFFromCSV(csvPath::String)
 
-# end #get_patient_df_from_csv
 
-function ETL.preparePatientsFromRawExcelFile(
-    patientsCodeNames::Vector{String}
-    ;filepath = "$(tempname()).xlsx"
+function ETL.getPatientRawDFFromSrcDB(
+    patientIDs::Vector{T} where T <: Integer,
+    useCache::Bool,
+    dbconn::ODBC.Connection
 )
-    # NOTE: Some implementations of processPatientRawHistoryWithFileLogging return missing
-    #       when an error is raised
-    patientsPreparedData::Vector{Union{DataFrame,Missing}} = DataFrame[]
 
-    for patientCodeName in patientsCodeNames
-        srcDF = ETL.getPatientDFFromExcel(patientCodeName)
-
-        push!(patientsPreparedData,
-                ETL.processPatientRawHistoryWithFileLogging(srcDF,patientCodeName) |>
-                n -> begin
-                    @info size(n)
-                    n
-                end
-                )
-
-    end
-    @info length(patientsPreparedData)
-
-    filter!(x -> !ismissing(x),patientsPreparedData)
-    @info length(patientsPreparedData)
-
-
-    ICUDYNUtil.exportToExcel(
-        patientsPreparedData,
-        patientsCodeNames
-        ;filepath = filepath
+    # Get the cache file path
+    basicInfo = ETL.getPatientBasicInfoFromSrcDB(patientIDs, dbconn)
+    cacheFilePath = ICUDYNUtil.getPatientRawCacheFilePath(
+        basicInfo.firstname,
+        basicInfo.lastname,
+        basicInfo.birthdate
     )
-end
 
-function ETL.getPatientDFFromExcel(patientCodeName::String)
-    patientsDir = ICUDYNUtil.getDataInputDir()
-    patientFilename = joinpath(patientsDir,"all_events_$patientCodeName.csv.xlsx")
-    isfile(patientFilename)
-    df = XLSX.readtable(patientFilename,1) |> n -> DataFrame(n...)
-
-    # Only for excel file inputs
-    if !isa(df.chartTime, Vector{DateTime})
-        df.chartTime = ICUDYNUtil.convertStringToDateTime.(df.chartTime)
-    end
-
-    if !isa(df.storeTime, Vector{DateTime})
-        df.storeTime = ICUDYNUtil.convertStringToDateTime.(df.storeTime)
-    end
-
-    return df
-end
-
-
-function ETL.getPatientIDsInSrcDB(
-    firstname::String,
-    lastname::String,
-    birthdate::Date)::Vector{Integer}
-
-    queryString = "
-        SELECT DISTINCT
-            vc.firstname,
-            vc.lastname,
-            vc.encounterid,
-            convert(varchar,vc.dateOfBirth,121) AS terseForm
-        FROM dbo.V_Census vc
-        WHERE vc.firstname = ? AND vc.lastname = ? AND vc.dateOfBirth = ?"
-
-    params = [firstname, lastname, birthdate]
-
-    dbconn = ICUDYNUtil.openDBConnICCA()
-
-    try
-        df = DBInterface.execute(dbconn, queryString,params) |> DataFrame
-        return df.encounterid
-    catch e
-        rethrow(e)
-    finally
-        ICUDYNUtil.closeDBConn(dbconn)
-    end
-
-
-end
-
-
-function ETL.getPatientRawDFFromSrcDB(patientIDs::Vector{T} where T <: Integer)
-
-    queryString = open("src/queries/get-patient-raw-data-from-src-db-mini.sql","r") do io
-        read(io, String)
-    end |>
-    n -> replace(n, "COMMA_SEPARATED_IDS" => string.(patientIDs) |> t -> join(t,","))
-
-    dbconn = ICUDYNUtil.openDBConnICCA()
-
-    try
+    # Load the data from cached file or database
+    if !useCache || !ispath(cacheFilePath)
+        queryString = open("src/queries/get-patient-raw-data-from-src-db.sql","r") do io
+            read(io, String)
+        end |>
+        n -> replace(n, "COMMA_SEPARATED_IDS" => string.(patientIDs) |> t -> join(t,","))
         df = DBInterface.execute(dbconn, queryString) |> DataFrame
+        serialize(cacheFilePath, df)
         return df
-    catch e
-        rethrow(e)
-    finally
-        ICUDYNUtil.closeDBConn(dbconn)
+    else
+        @info "Load cache[$cacheFilePath]"
+        return deserialize(cacheFilePath)
     end
+
 
 end
 
+function ETL.getPatientBasicInfoFromSrcDB(
+    patientIDs::Vector{T} where T <:Integer,
+    dbconn::ODBC.Connection
+)
+    ETL.getPatientBasicInfoFromSrcDB(first(patientIDs), dbconn)
 
-function ETL.getPatientsCurrentlyInUnitFromSrcDB()
+end
 
+function ETL.getPatientBasicInfoFromSrcDB(patientID::Integer, dbconn::ODBC.Connection)
+
+    # Get a first list of patients names
     queryString = "
-        SELECT
-            TOP 5
+        SELECT TOP 1
             vc.encounterId,
-            vc.inTime,
-            vc.outTime,
             vc.firstname,
             vc.lastname,
             vc.dateOfBirth AS birthdate
         FROM dbo.V_Census vc
-        WHERE vc.outTime IS NULL"
+        WHERE vc.encounterId = ?
+        "
 
+    df = DBInterface.execute(dbconn, queryString,[patientID]) |> DataFrame
 
-    dbconn = ICUDYNUtil.openDBConnICCA()
-
-    try
-        df = DBInterface.execute(dbconn, queryString) |> DataFrame
-
-
-        return df
-    catch e
-        rethrow(e)
-    finally
-        ICUDYNUtil.closeDBConn(dbconn)
-    end
+    return (
+        firstname = first(df).firstname,
+        lastname = first(df).lastname,
+        birthdate = Date(first(df).birthdate),
+    )
 
 end
 
@@ -195,7 +127,8 @@ function ETL.processPatientRawHistory(df::DataFrame)
     # ##### #
     # Clean #
     # ##### #
-    filter!(x-> x.attributeDictionaryPropName != "PtSite_startTime" ,df)
+    filter!(x -> x.attributeDictionaryPropName != "PtSite_startTime" ,df)
+    filter!(x -> !ismissing(x.chartTime),df)
 
     # ### #
     # Cut #
@@ -303,12 +236,28 @@ function ETL.combineRefinedWindows(refinedWindows::Vector{RefinedWindow})
 end
 
 function ETL.cutPatientDF(df::DataFrame)
-    df_array = DataFrame[]
+    dfArray = DataFrame[]
 
     # Order DataFrame
     sort!(df, :chartTime)
     windowSize = 4
-    window = DataFrame()
+    windowTpl = DataFrame(
+        encounterId = Vector{Union{Missing,Int32}}(),
+        chartTime = Vector{Union{Missing,DateTime}}(),
+        storeTime = Vector{Union{Missing,DateTime}}(),
+        terseForm = Vector{Union{Missing,String}}(),
+        verboseForm = Vector{Union{Missing,String}}(),
+        interventionLongLabel = Vector{Union{Missing,String}}(),
+        attributeDictionaryPropName = Vector{Union{Missing,String}}(),
+        interventionShortLabel = Vector{Union{Missing,String}}(),
+        interventionPropName = Vector{Union{Missing,String}}(),
+        interventionBaseLongLabel = Vector{Union{Missing,String}}(),
+        attributeLongLabel = Vector{Union{Missing,String}}(),
+        attributeShortLabel = Vector{Union{Missing,String}}(),
+        attributePropName = Vector{Union{Missing,String}}(),
+        materialPropName = Vector{Union{Missing,String}}(),
+    )
+    window = deepcopy(windowTpl)
     windowFirstTime = df[1,:chartTime]
 
     windowEndTime = windowFirstTime + Hour(windowSize)
@@ -316,13 +265,18 @@ function ETL.cutPatientDF(df::DataFrame)
     # Loop
     for r in eachrow(df)
 
+        if ismissing(r.chartTime)
+            error("ismissing(r.chartTime)")
+        end
+
         # If chartTime after cut off time of the current window
         if (r.chartTime >= windowEndTime)
             # Add the current window to the list of windows
-            push!(df_array,window)
+            push!(dfArray,window)
 
             # Create a new window
-            window = DataFrame(r)
+            window = deepcopy(windowTpl)
+            push!(window,r)
 
             # Look for the next window end time (in case there are holes in the history of
             #   the events)
@@ -333,14 +287,21 @@ function ETL.cutPatientDF(df::DataFrame)
 
         # else, same window
         else
-            push!(window,r)
+            try
+                push!(window,r)
+            catch e
+                serialize("tmp/debug/window.jld",window)
+                @warn window
+                @warn r
+                rethrow(e)
+            end
         end
     end
 
     # Add last window
-    push!(df_array,window)
+    push!(dfArray,window)
 
-    return df_array
+    return dfArray
 end #cut_patient_df
 
 function ETL.initializeWindow(window::DataFrame)

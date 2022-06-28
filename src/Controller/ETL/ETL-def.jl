@@ -1,8 +1,10 @@
-function preparePatientsFromRawExcelFile end
-function getPatientDFFromExcel end
+function preparePatientsCurrentlyInUnitAndExportToExcel end
+function preparePatientsAndExportToExcel end
+
 function getPatientRawDFFromSrcDB end
 function getPatientsCurrentlyInUnitFromSrcDB end
-function getPatientIDsInSrcDB end
+function getPatientIDsFromSrcDB end
+function getPatientBasicInfoFromSrcDB end
 function cutPatientDF end
 function initializeWindow end
 function refineWindow1stPass! end
@@ -21,3 +23,8 @@ function getCachedVariable end
 function refreshCache! end
 function enrichModuleResultWithFunctionResult! end
 function enrichWindowModulesResultsWith2ndPassFunctionResult! end
+
+
+# Deprecated
+function preparePatientsFromRawExcelFile end
+function getPatientDFFromExcel end

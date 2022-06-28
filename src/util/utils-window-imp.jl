@@ -14,9 +14,21 @@ function ICUDYNUtil.getNonMissingValues(
 
     res = window |>
         n -> filter(
-            r -> (r[filterColumn] == filterValue
+            r -> (r[filterColumn] === filterValue
                   && !isMissing(r[columnOfInterest])),n) |>
         n -> n[:,columnOfInterest]
+
+    # res = try
+
+    #     window |>
+    #         n -> filter(r -> r[filterColumn] == filterValue,n) |>
+    #         n -> filter(r -> !isMissing(r[columnOfInterest]),n) |>
+    #         n -> n[:,columnOfInterest]
+
+    # catch e
+    #     @warn "filterColumn[$filterColumn] filterValue[$filterValue]"
+    #     @warn "any(ismissing.(window[:,filterColumn]))[$(any(ismissing.(window[:,filterColumn])))]"
+    # end
 
     return res
 end
@@ -39,7 +51,7 @@ function ICUDYNUtil.getNumericValueFromWindowTerseForm(
     return res
 end
 
-function ICUDYNUtil.firstNonMissingValue(variable::Symbol,refinedWindows::DataFrame) 
+function ICUDYNUtil.firstNonMissingValue(variable::Symbol,refinedWindows::DataFrame)
    for r in eachrow(refinedWindows)
         if !ismissing(r[variable])
             return r[variable]
@@ -52,15 +64,15 @@ function ICUDYNUtil.sameWindowValue(
     variable::Symbol)
     if !hasproperty(refinedRow,variable)
         return missing
-    end    
+    end
     return getproperty(refinedRow,variable)
 end
 
 function ICUDYNUtil.closestNonMissingValue(
-    variable::Symbol, 
+    variable::Symbol,
     dateOI::DateTime,
     refinedWindows::DataFrame)
-    
+
     closestPastValue, closestPastDate = ICUDYNUtil.closestNonMissingValueInCurrentOrPreviousWindows(variable, dateOI, refinedWindows; returnDate = true)
     closestNextValue, closestNextDate = ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(variable, dateOI, refinedWindows; returnDate = true)
 
@@ -80,15 +92,15 @@ function ICUDYNUtil.closestNonMissingValue(
     else
         return missing
     end
-    
+
 end
 
 function ICUDYNUtil.closestNonMissingValueInCurrentOrPreviousWindows(
-        variable::Symbol, 
+        variable::Symbol,
         dateOI::DateTime,
         refinedWindows::DataFrame
         ;returnDate::Bool=false)
-    
+
     value = missing
     idx = findlast(refinedWindows.startTime .<= dateOI)
     if !isnothing(idx)
@@ -99,7 +111,7 @@ function ICUDYNUtil.closestNonMissingValueInCurrentOrPreviousWindows(
             idx-=1
         end
     end
-        
+
     if !returnDate
         if isnothing(idx) || idx == 0
             return missing
@@ -117,7 +129,7 @@ end
 
 
 function ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(
-    variable::Symbol, 
+    variable::Symbol,
     dateOI::DateTime,
     refinedWindows::DataFrame
     ;returnDate::Bool=false)
@@ -132,7 +144,7 @@ function ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(
             idx+=1
         end
     end
-        
+
     if !returnDate
         if isnothing(idx) || idx > nrow(refinedWindows)
             return missing
@@ -146,6 +158,6 @@ function ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(
             return (refinedWindows[idx, variable], refinedWindows.startTime[idx])
         end
     end
-    
+
 
 end

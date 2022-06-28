@@ -3,6 +3,7 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
     dict = RefiningFunctionResult()
     prefiltered = window |>
         n -> filter(x -> startswith(x.attributeDictionaryPropName,"PtLabResult_"),n) |>
+        n -> filter(x -> !ismissing(x.terseForm),n) |>
         n -> filter(x -> !isnothing(match(r"\d", x.terseForm)),n)
     molecules = Dict{Symbol,Any}(
         :lactate => r"PtLabResult_Acide lactique",
@@ -63,12 +64,12 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
     )
 
     for (k,v) in molecules
-        res = prefiltered |> 
+        res = prefiltered |>
             n -> filter(x -> !isnothing(match(v, x.interventionLongLabel)),n) |>
             n -> if length(n.terseForm)==0 return missing else n.terseForm end
-        
-        
-            
+
+
+
 
         if res !== missing
 
@@ -89,12 +90,12 @@ function ETL.Biology.computeBiologyVars(window::DataFrame)
 end
 
 """
-    computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String) 
+    computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String)
 
 blabla
 """
-function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String) 
-    
+function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::Number, gender::String)
+
     creatinine = ICUDYNUtil.getNonMissingValues(
             window,
             :attributeDictionaryPropName,
@@ -107,14 +108,14 @@ function ETL.Biology.computeCreatinine(window::DataFrame, age::Number, weight::N
         n -> replace.(n, "," => ".") |>
         n -> convertToFloatIfPossible.(n) |>
         n-> if isempty(n) return missing else round(mean(n), digits = 2) end
-        
+
     cockroftDfg = missing
     if (gender == "male")
         cockroftDfg = round(1.25 * weight * (140 - age) / creatinine, digits = 2)
     else
         cockroftDfg = round(1.25 * weight * (140 - age) / creatinine, digits = 2) * 0.84
     end
-    
+
     return RefiningFunctionResult(
         :creatinine => creatinine,
         :cockroftDfg => cockroftDfg
