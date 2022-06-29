@@ -3,6 +3,8 @@ function preparePatientsAndExportToExcel end
 
 function getPatientRawDFFromSrcDB end
 function getPatientsCurrentlyInUnitFromSrcDB end
+function getPatientsRecentlyOutFromSrcDB end
+function getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB end
 function getPatientIDsFromSrcDB end
 function getPatientBasicInfoFromSrcDB end
 function cutPatientDF end

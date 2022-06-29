@@ -57,6 +57,7 @@ function ICUDYNUtil.firstNonMissingValue(variable::Symbol,refinedWindows::DataFr
             return r[variable]
         end
    end
+   return nothing
 end
 
 function ICUDYNUtil.sameWindowValue(

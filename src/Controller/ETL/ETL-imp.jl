@@ -15,6 +15,8 @@ include("getPatientIDsFromSrcDB.jl")
 include("preparePatientsAndExportToExcel.jl")
 include("preparePatientsCurrentlyInUnitAndExportToExcel.jl")
 include("getPatientsCurrentlyInUnitFromSrcDB.jl")
+include("getPatientsRecentlyOutFromSrcDB.jl")
+include("getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB.jl")
 
 include("deprecated/excel-deprecated.jl")
 
@@ -537,6 +539,15 @@ function ETL.updateCache!(
     value::RefiningFunctionAllowedValueType)
 
     cache[varName] = value
+end
+
+function ETL.updateCache!(
+    cache::Dict{Symbol, RefiningFunctionAllowedValueType},
+    varName::Symbol,
+    value::Nothing)
+
+    # DO NOTHING, nothing cannot be a cached value
+
 end
 
 function ETL.getCachedVariable(

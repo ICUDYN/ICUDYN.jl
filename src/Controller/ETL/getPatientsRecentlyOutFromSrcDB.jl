@@ -1,4 +1,4 @@
-function ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn::ODBC.Connection)
+function ETL.getPatientsRecentlyOutFromSrcDB(dbconn::ODBC.Connection)
 
     # Get a first list of patients names
     queryString = "
@@ -13,9 +13,13 @@ function ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn::ODBC.Connection)
         WHERE vc.firstname IS NOT NULL, -- it can happen
               vc.lastname IS NOT NULL, -- it can happen
               vc.dateOfBirth IS NOT NULL, -- it can happen
-              vc.outTime IS NULL"
+              vc.outTime >= ?"
 
-    patientsNamesDF = DBInterface.execute(dbconn, queryString) |> DataFrame
+    patientsNamesDF = DBInterface.execute(
+        dbconn,
+        queryString,
+        [DateTime(today() - Day(2), Time(0,0,0))]
+    ) |> DataFrame
 
     result = PatientInSrcDB[]
     for r in eachrow(patientsNamesDF)

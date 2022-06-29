@@ -165,6 +165,22 @@ end
 
 end
 
+@testset "Test ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB" begin
+
+    ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
+        ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB(dbconn)
+    end
+
+end
+
+@testset "Test ETL.getPatientsRecentlyOutFromSrcDB" begin
+
+    ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
+        ETL.getPatientsRecentlyOutFromSrcDB(dbconn)
+    end
+
+end
+
 @testset "Test ETL.getPatientBasicInfoFromSrcDB" begin
     dbconn = ICUDYNUtil.openSrcDBConn()
     try
