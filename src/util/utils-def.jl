@@ -13,6 +13,8 @@ function getICUDYNTempFile end
 function getETLAIntegrerDir end
 function blindBakeIsRequired end
 
+function getWebserverOutDir end
+
 """
     Renvoie le chemin du dossier contenant les fichiers zip déjà intégrés
 """

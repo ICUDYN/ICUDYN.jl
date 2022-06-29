@@ -1,5 +1,6 @@
 function ETL.preparePatientsAndExportToExcel(
     patients::Vector{PatientInSrcDB},
+    useCache::Bool,
     dbconn::ODBC.Connection,
     ;filepath = "$(tempname()).xlsx"
 )
@@ -15,7 +16,7 @@ function ETL.preparePatientsAndExportToExcel(
 
         rawDF = ETL.getPatientRawDFFromSrcDB(
             p.srcDBIDs,
-            true, # useCache::Bool,
+            useCache,
             dbconn
         )
 

@@ -13,7 +13,7 @@ include("./Nutrition/Nutrition-imp.jl")
 
 include("getPatientIDsFromSrcDB.jl")
 include("preparePatientsAndExportToExcel.jl")
-include("preparePatientsCurrentlyInUnitAndExportToExcel.jl")
+include("exportPatientsToWebServer.jl")
 include("getPatientsCurrentlyInUnitFromSrcDB.jl")
 include("getPatientsRecentlyOutFromSrcDB.jl")
 include("getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB.jl")

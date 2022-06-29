@@ -10,10 +10,10 @@ function ETL.getPatientsRecentlyOutFromSrcDB(dbconn::ODBC.Connection)
             vc.lastname,
             vc.dateOfBirth AS birthdate
         FROM dbo.V_Census vc
-        WHERE vc.firstname IS NOT NULL, -- it can happen
-              vc.lastname IS NOT NULL, -- it can happen
-              vc.dateOfBirth IS NOT NULL, -- it can happen
-              vc.outTime >= ?"
+        WHERE vc.firstname IS NOT NULL -- it can happen
+          AND vc.lastname IS NOT NULL -- it can happen
+          AND vc.dateOfBirth IS NOT NULL -- it can happen
+          AND vc.outTime >= ?"
 
     patientsNamesDF = DBInterface.execute(
         dbconn,

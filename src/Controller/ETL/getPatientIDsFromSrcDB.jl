@@ -10,7 +10,9 @@ function ETL.getPatientIDsFromSrcDB(
             vc.encounterid,
             convert(varchar,vc.dateOfBirth,121) AS terseForm
         FROM dbo.V_Census vc
-        WHERE vc.firstname = ? AND vc.lastname = ? AND vc.dateOfBirth = ?"
+        WHERE vc.firstname = ?
+          AND vc.lastname = ?
+          AND vc.dateOfBirth = ?"
 
     params = [firstname, lastname, birthdate]
 

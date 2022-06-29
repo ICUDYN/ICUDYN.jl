@@ -10,6 +10,7 @@ include("../../runtests-prerequisite.jl")
     ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
         ETL.preparePatientsAndExportToExcel(
             [patientInSrcDB],
+            true, # useCache
             dbconn,
             # ;filepath = "$(tempname()).xlsx"
         )
@@ -17,15 +18,13 @@ include("../../runtests-prerequisite.jl")
 
     ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
         ETL.preparePatientsAndExportToExcel(
-            patientsInSrcDB,
+            # patientsInSrcDB,
+            [patientInSrcDB],
+            true, # useCache
             dbconn,
-            ;filepath = "tmp/current_patients.xlsx"
+            ;filepath = "/usr/share/nginx/html/icudyn-dev/current_patients.xlsx"
         ) |>
         n -> XLSX.readtable(n,1) |> n -> DataFrame(n...)
     end
 
 end
-
-
-a = Int[]
-push!(a,[3...])

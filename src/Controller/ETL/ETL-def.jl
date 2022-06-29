@@ -1,4 +1,4 @@
-function preparePatientsCurrentlyInUnitAndExportToExcel end
+function preparePatientsCurrentlyInUnitOrRecentlyOutAndExportToExcel end
 function preparePatientsAndExportToExcel end
 
 function getPatientRawDFFromSrcDB end
@@ -30,3 +30,6 @@ function enrichWindowModulesResultsWith2ndPassFunctionResult! end
 # Deprecated
 function preparePatientsFromRawExcelFile end
 function getPatientDFFromExcel end
+
+# Temporary
+function exportPatientsToWebServer end

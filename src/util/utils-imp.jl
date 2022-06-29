@@ -50,6 +50,10 @@ function ICUDYNUtil.getLogDir()
     getConf("default","log_dir")
 end
 
+function ICUDYNUtil.getWebserverOutDir()
+    getConf("default","webserver_out_dir")
+end
+
 function ICUDYNUtil.getDataInputDir()
     joinpath(getDataDir(), "input")
 end

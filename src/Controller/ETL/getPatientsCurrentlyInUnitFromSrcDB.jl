@@ -10,10 +10,10 @@ function ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn::ODBC.Connection)
             vc.lastname,
             vc.dateOfBirth AS birthdate
         FROM dbo.V_Census vc
-        WHERE vc.firstname IS NOT NULL, -- it can happen
-              vc.lastname IS NOT NULL, -- it can happen
-              vc.dateOfBirth IS NOT NULL, -- it can happen
-              vc.outTime IS NULL"
+        WHERE vc.firstname IS NOT NULL -- it can happen
+          AND vc.lastname IS NOT NULL -- it can happen
+          AND vc.dateOfBirth IS NOT NULL -- it can happen
+          AND vc.outTime IS NULL"
 
     patientsNamesDF = DBInterface.execute(dbconn, queryString) |> DataFrame
 

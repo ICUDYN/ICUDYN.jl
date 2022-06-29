@@ -3,9 +3,9 @@ function Scheduler.checkIfAnythingNeedsToBeExecuted()
     # This is where you declare the functions and the times of execution
     functions = [
         (
-            _module = TemporaryFileAccessCtrl,
-            _functionName = :cleanDecryptedFiles,
-            _execution_times = Scheduler.every5Minutes
+            _module = ETL,
+            _functionName = :exportPatientsToWebServer,
+            _execution_times = Scheduler.every6Hours
         )
     ]
 
