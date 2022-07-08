@@ -18,7 +18,7 @@ function ETL.getPatientsRecentlyOutFromSrcDB(dbconn::ODBC.Connection)
     patientsNamesDF = DBInterface.execute(
         dbconn,
         queryString,
-        [DateTime(today() - Day(2), Time(0,0,0))]
+        [DateTime(today() - Day(10), Time(0,0,0))]
     ) |> DataFrame
 
     result = PatientInSrcDB[]

@@ -20,11 +20,12 @@ function ETL.exportPatientsToWebServer(
     patientsInSrcDB::Vector{PatientInSrcDB} =
         ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB(dbconn)
 
-    patientsInSrcDB = patientsInSrcDB[1:2]
+    # DEBUG: Limit the number of patients
+    # patientsInSrcDB = patientsInSrcDB[1:2]
 
     ETL.preparePatientsAndExportToExcel(
         patientsInSrcDB,
-        true, # useCache
+        false, # useCache
         dbconn,
         ;filepath = filepath
     )
