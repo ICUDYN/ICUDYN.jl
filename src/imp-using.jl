@@ -9,7 +9,7 @@ using .Controller.ETL.Ventilation
 using .Controller.ETL.Biology
 using .Controller.ETL.Prescription
 
-using Statistics
+using Statistics, Pkg
 using DataStructures
 # No choice...calling 'using' with in the module block does not work
 using Dates, Base.StackTraces, TimeZones, LibPQ, InfoZIP, Serialization,
