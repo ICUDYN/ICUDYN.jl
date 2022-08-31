@@ -1,6 +1,8 @@
 function ETL.exportPatientsToWebServer()
 
-    filepath = joinpath(ICUDYNUtil.getWebserverOutDir(),"patient-$(now()).xlsx")
+    packageVersion = Pkg.project().version |> string
+
+    filepath = joinpath(ICUDYNUtil.getWebserverOutDir(),"patient-$(now())-V$packageVersion.xlsx")
 
     ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
         ETL.exportPatientsToWebServer(
