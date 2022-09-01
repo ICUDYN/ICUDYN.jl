@@ -14,6 +14,11 @@ function getETLAIntegrerDir end
 function blindBakeIsRequired end
 
 function getWebserverOutDir end
+function getWebserverOutDirForRawData end
+function getWebserverOutDirForPatientRawData end
+function getWebserverFilenameForPatientRawData end
+
+function getPackageVersion end
 
 """
     Renvoie le chemin du dossier contenant les fichiers zip déjà intégrés

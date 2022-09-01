@@ -23,7 +23,7 @@ function ETL.exportPatientsToWebServer(
         ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB(dbconn)
 
     # DEBUG: Limit the number of patients
-    # patientsInSrcDB = patientsInSrcDB[1:2]
+    patientsInSrcDB = patientsInSrcDB[1:2]
 
     ETL.preparePatientsAndExportToExcel(
         patientsInSrcDB,

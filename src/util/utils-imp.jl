@@ -54,6 +54,33 @@ function ICUDYNUtil.getWebserverOutDir()
     getConf("default","webserver_out_dir")
 end
 
+function ICUDYNUtil.getWebserverOutDirForRawData()
+    joinpath(ICUDYNUtil.getWebserverOutDir(),"raw")
+end
+
+function ICUDYNUtil.getWebserverOutDirForPatientRawData(patient::PatientInSrcDB)
+    patientCodeName = ICUDYNUtil.getPatientPrettyCodename(
+        patient.firstname, patient.lastname, patient.birthdate
+    )
+    path=joinpath(ICUDYNUtil.getWebserverOutDirForRawData(),patientCodeName)
+    if !ispath(path)
+        mkpath(path)
+    end
+    return path
+end
+
+function ICUDYNUtil.getWebserverFilenameForPatientRawData(patient::PatientInSrcDB)
+    patientCodeName = ICUDYNUtil.getPatientPrettyCodename(
+        patient.firstname, patient.lastname, patient.birthdate
+    )
+    packageVersion = ICUDYNUtil.getPackageVersion()
+    joinpath(ICUDYNUtil.getWebserverOutDirForPatientRawData(patient),"patient-$patientCodeName-$(now())-V$packageVersion-raw.xlsx")
+end
+
+function ICUDYNUtil.getPackageVersion()
+    packageVersion = Pkg.project().version |> string
+end
+
 function ICUDYNUtil.getDataInputDir()
     joinpath(getDataDir(), "input")
 end
@@ -654,11 +681,11 @@ function ICUDYNUtil.prepareDataFrameForExcel!(df::DataFrame)
       type = PostgresORM.PostgresORMUtil.get_nonmissing_typeof_uniontype(eltype(df[!,col]))
       if !(type in [Missing, Bool, Float64, Int64, Date, DateTime, Time, String])
           if (type <: Integer && type != Int64)
-              df[col] = convert(Vector{Union{Missing, Int64}}, df[col])
+              df[!,col] = convert(Vector{Union{Missing, Int64}}, df[:,col])
           elseif type <: Decimals.Decimal
-              df[col] = convert(Vector{Union{Missing, Float64}}, df[col])
+              df[!,col] = convert(Vector{Union{Missing, Float64}}, df[:,col])
           elseif (type <: AbstractFloat && type != Float64)
-              df[col] = convert(Vector{Union{Missing, Float64}}, df[col])
+              df[!,col] = convert(Vector{Union{Missing, Float64}}, df[:,col])
           end
       end
     end
