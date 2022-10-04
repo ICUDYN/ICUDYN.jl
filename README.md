@@ -8,3 +8,5 @@ A Julia project for the server side of the ICUDYN platform
 
 [docs-latest-img]: https://img.shields.io/badge/docs-latest-blue.svg
 [docs-latest-url]: https://icudyn.github.io/ICUDYN.jl/
+
+TEST
