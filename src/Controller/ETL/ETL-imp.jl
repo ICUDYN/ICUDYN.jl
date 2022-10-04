@@ -461,6 +461,19 @@ function ETL.refineWindow2ndPass!(
         ETL.Physiological.computeNeuroGlasgow,
         fctResult)
 
+
+    # Compute unplugAttempt
+    invasive = ETL.getCachedVariable(cache, :criticalVentilType) === "invasive"
+    fctResult = passmissing(ETL.Ventilation.computeUnplugAttemptInvasiveVentilation)(
+        rawWindow,
+        invasive
+    )
+    ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
+        refinedWindow,
+        ETL.Ventilation,
+        ETL.Ventilation.computeUnplugAttemptInvasiveVentilation,
+        fctResult)
+
     return refinedWindow
 
 end

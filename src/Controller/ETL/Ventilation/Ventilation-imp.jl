@@ -60,37 +60,41 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 end
 
 
-function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFrame) 
+function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFrame, invasive::Bool) 
 
-    unplugAttemptInvasiveVentilation = false
-    unplugAttemptInvasiveVentilationDuration = missing # TODO Bapt : ou 0 ?
+    unplugAttemptInvasiveVentilation = missing
+    unplugAttemptInvasiveVentilationDuration = missing
 
-    unplugAttemptInvasiveVentilation = window |>
-    n -> ICUDYNUtil.getNonMissingValues(
-        n, 
-        :attributeDictionaryPropName,
-        "PtAssessment_VentModeInt.VentModeList", 
-        :terseForm ) |>
-    n -> filter(x -> contains(x,"Epreuve"),n) |> !isempty
+    # Unplug attempt only makes sense in the context of invasive ventilation type 
+    if invasive
+    
+        unplugAttemptInvasiveVentilation = window |>
+        n -> ICUDYNUtil.getNonMissingValues(
+            n, 
+            :attributeDictionaryPropName,
+            "PtAssessment_VentModeInt.VentModeList", 
+            :terseForm ) |>
+        n -> filter(x -> contains(x,"Epreuve"),n) |> !isempty
 
-    unplugAttemptInvasiveVentilation = window |>
-    n -> ICUDYNUtil.getNonMissingValues(
-        n, 
-        :attributeDictionaryPropName,
-        "PtAssessment_Calcul_seances_VS_sur_tube.Etat", 
-        :terseForm ) |>
-    n -> filter(x -> contains(x,"Fin VS/tube"),n) |> !isempty 
+        unplugAttemptInvasiveVentilation = window |>
+        n -> ICUDYNUtil.getNonMissingValues(
+            n, 
+            :attributeDictionaryPropName,
+            "PtAssessment_Calcul_seances_VS_sur_tube.Etat", 
+            :terseForm ) |>
+        n -> filter(x -> contains(x,"Fin VS/tube"),n) |> !isempty 
 
-    unplugAttemptInvasiveVentilationDuration = ICUDYNUtil.getNumericValueFromWindowTerseForm(
-        window,
-        "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
-        maximum)
-
+        unplugAttemptInvasiveVentilationDuration = ICUDYNUtil.getNumericValueFromWindowTerseForm(
+            window,
+            "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
+            maximum)
+    end
+    
     return RefiningFunctionResult(
         :unplugAttemptInvasiveVentilation => unplugAttemptInvasiveVentilation,
         :unplugAttemptInvasiveVentilationDuration => unplugAttemptInvasiveVentilationDuration
     )
-
+    
 end
 
 function ETL.Ventilation.computeRespiratoryVolumeMinute(window::DataFrame)  
