@@ -124,12 +124,19 @@ function ETL.Ventilation.computeRespiratoryRate(window::DataFrame)
 end
 
 
-function ETL.Ventilation.computeFio2(window::DataFrame) 
-    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
-            window,
-            "PtAssessment_Fraction_en_oxygene_FiO2.mesure",
-            n -> round(mean(n), digits=2))
+function ETL.Ventilation.computeFio2(window::DataFrame, critical::Bool) 
     
+    res = missing
+
+    #Calculer FiO2 uniquement si ventilation critique
+    if critical
+    
+        res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+                window,
+                "PtAssessment_Fraction_en_oxygene_FiO2.mesure",
+                n -> round(mean(n), digits=2))
+    
+    end
     return RefiningFunctionResult(:fiO2 => res)
     
 end
@@ -160,17 +167,17 @@ end
 
 function ETL.Ventilation.computePositiveExpiratoryPressure(window::DataFrame, ohd::Bool)
      
-    pep = missing
+    res = missing
 
     # On ne renseigne pas la PEP si patient sous OHD
     if !OHD
     
-        pep =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+        res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
                 window,
                 "PtAssessment_Pression_positive_PEP_cmH2O.mesure",
                 n -> round(mean(n), digits=2))
 
     end
 
-    return RefiningFunctionResult(:positiveExpiratoryPressure => pep)
+    return RefiningFunctionResult(:positiveExpiratoryPressure => res)
 end
