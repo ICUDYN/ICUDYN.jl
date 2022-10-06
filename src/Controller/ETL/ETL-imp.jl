@@ -462,8 +462,14 @@ function ETL.refineWindow2ndPass!(
         fctResult)
 
 
-    # Compute unplugAttempt
+    ### VENTILATION ###
+
+    # Useful variables
     invasive = ETL.getCachedVariable(cache, :criticalVentilType) === "invasive"
+    ohd = ETL.getCachedVariable(cache, :criticalVentilType) === "OHD"
+    critical = !ismissing(ETL.getCachedVariable(cache, :criticalVentilType))
+
+    # Compute unplugAttempt
     fctResult = passmissing(ETL.Ventilation.computeUnplugAttemptInvasiveVentilation)(
         rawWindow,
         invasive
@@ -474,9 +480,7 @@ function ETL.refineWindow2ndPass!(
         ETL.Ventilation.computeUnplugAttemptInvasiveVentilation,
         fctResult)
 
-
     # Compute positiveExpiratoryPressure
-    ohd = ETL.getCachedVariable(cache, :criticalVentilType) === "OHD"
     fctResult = passmissing(ETL.Ventilation.computePositiveExpiratoryPressure)(
         rawWindow,
         ohd
@@ -488,7 +492,6 @@ function ETL.refineWindow2ndPass!(
         fctResult)
 
     # Compute FiO2
-    critical = !ismissing(ETL.getCachedVariable(cache, :criticalVentilType))
     fctResult = passmissing(ETL.Ventilation.computeFio2)(
         rawWindow,
         critical
@@ -497,6 +500,18 @@ function ETL.refineWindow2ndPass!(
         refinedWindow,
         ETL.Ventilation,
         ETL.Ventilation.computeFio2,
+        fctResult)
+
+    # Compute Volume
+    fctResult = passmissing(ETL.Ventilation.computeRespiratoryVolumeMinute)(
+        rawWindow,
+        critical,
+        ohd
+    )
+    ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
+        refinedWindow,
+        ETL.Ventilation,
+        ETL.Ventilation.computeRespiratoryVolumeMinute,
         fctResult)
 
     return refinedWindow
