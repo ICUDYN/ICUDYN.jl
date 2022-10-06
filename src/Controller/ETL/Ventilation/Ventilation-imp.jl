@@ -68,7 +68,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
     # Unplug attempt only makes sense in the context of invasive ventilation type 
     if invasive
     
-        unplugAttemptInvasiveVentilation = window |>
+        unplugAttemptInvasiveVentilationFromVentMode = window |>
         n -> ICUDYNUtil.getNonMissingValues(
             n, 
             :attributeDictionaryPropName,
@@ -76,19 +76,26 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
             :terseForm ) |>
         n -> filter(x -> contains(x,"Epreuve"),n) |> !isempty
 
-        unplugAttemptInvasiveVentilation = window |>
+        unplugAttemptInvasiveVentilationFromSeances = window |>
         n -> ICUDYNUtil.getNonMissingValues(
             n, 
             :attributeDictionaryPropName,
             "PtAssessment_Calcul_seances_VS_sur_tube.Etat", 
             :terseForm ) |>
         n -> filter(x -> contains(x,"Fin VS/tube"),n) |> !isempty 
-
+        
+        unplugAttemptInvasiveVentilation = 
+            unplugAttemptInvasiveVentilationFromVentMode || 
+            unplugAttemptInvasiveVentilationFromSeances
+        
         unplugAttemptInvasiveVentilationDuration = ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
             "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
             maximum)
+
     end
+
+    
     
     return RefiningFunctionResult(
         :unplugAttemptInvasiveVentilation => unplugAttemptInvasiveVentilation,
@@ -151,11 +158,19 @@ function ETL.Ventilation.computePao2OverFio2(window::DataFrame)
     )
 end
 
-function ETL.Ventilation.computePositiveExpiratoryPressure(window::DataFrame) 
-    res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
-            window,
-            "PtAssessment_Pression_positive_PEP_cmH2O.mesure",
-            n -> round(mean(n), digits=2))
+function ETL.Ventilation.computePositiveExpiratoryPressure(window::DataFrame, ohd::Bool)
+     
+    pep = missing
 
-    return RefiningFunctionResult(:positiveExpiratoryPressure => res)
+    # On ne renseigne pas la PEP si patient sous OHD
+    if !OHD
+    
+        pep =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
+                window,
+                "PtAssessment_Pression_positive_PEP_cmH2O.mesure",
+                n -> round(mean(n), digits=2))
+
+    end
+
+    return RefiningFunctionResult(:positiveExpiratoryPressure => pep)
 end

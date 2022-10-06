@@ -474,6 +474,19 @@ function ETL.refineWindow2ndPass!(
         ETL.Ventilation.computeUnplugAttemptInvasiveVentilation,
         fctResult)
 
+
+    # Compute positiveExpiratoryPressure
+    ohd = ETL.getCachedVariable(cache, :criticalVentilType) === "OHD"
+    fctResult = passmissing(ETL.Ventilation.computePositiveExpiratoryPressure)(
+        rawWindow,
+        ohd
+    )
+    ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
+        refinedWindow,
+        ETL.Ventilation,
+        ETL.Ventilation.computeUnplugAttemptInvasiveVentilation,
+        fctResult)
+
     return refinedWindow
 
 end
