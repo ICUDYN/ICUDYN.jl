@@ -1,4 +1,6 @@
-function ETL.exportPatientsToWebServer()
+function ETL.exportPatientsToWebServer(
+    ;maxNumberOfPatients::Union{Missing,Integer} = missing
+)
 
     packageVersion = Pkg.project().version |> string
 
@@ -7,7 +9,8 @@ function ETL.exportPatientsToWebServer()
     ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
         ETL.exportPatientsToWebServer(
             dbconn,
-            ;filepath = filepath
+            ;filepath = filepath,
+            maxNumberOfPatients = maxNumberOfPatients
         )
     end
 
@@ -16,14 +19,17 @@ end
 
 function ETL.exportPatientsToWebServer(
     dbconn::ODBC.Connection,
-    ;filepath = "$(tempname()).xlsx"
+    ;filepath = "$(tempname()).xlsx",
+    maxNumberOfPatients::Union{Missing,Integer} = missing
 )
 
     patientsInSrcDB::Vector{PatientInSrcDB} =
         ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB(dbconn)
 
-    # DEBUG: Limit the number of patients
-    # patientsInSrcDB = patientsInSrcDB[1:2]
+    # Limit the number of patients if needed
+    if !ismissing(maxNumberOfPatients)
+        patientsInSrcDB = patientsInSrcDB[1:minimum([maxNumberOfPatients,length(patientsInSrcDB)])]
+    end
 
     ETL.preparePatientsAndExportToExcel(
         patientsInSrcDB,
