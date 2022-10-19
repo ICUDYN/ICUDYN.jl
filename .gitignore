@@ -13,6 +13,7 @@ tmp/*
 # Ignore debug scripts but keep the dir
 debug-scripts/*
 !debug-scripts/.gitkeep
+!debug-scripts/export-patient-raw-data-to-excel.jl
 
 # Ignore the developer logs dir
 logs/*
