@@ -846,3 +846,8 @@ end
 function ICUDYNUtil.getPatientPrettyCodename(firstname::String,lastname::String, birthdate::Date)
     return "$(firstname)_$(lastname)_$(birthdate)"
 end
+
+function ICUDYNUtil.getModuleRootPath()
+    return joinpath(dirname(pathof(ICUDYN)),"..") |> normpath
+end
+
