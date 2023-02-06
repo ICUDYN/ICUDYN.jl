@@ -171,3 +171,5 @@ function getValueOfError end
 
 function getPatientPrettyCodename end
 function getPatientRawCacheFilePath end
+
+function getModuleRootPath end

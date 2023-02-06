@@ -193,7 +193,7 @@ function ETL.Ventilation.computeSPO2(window::DataFrame)
 
     res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
-            "PtAssessment_SpO2msmt",
+            "PtAssessment_SpO2Int.SpO2msmt",
             n -> round(mean(n), digits=2))
 
     return RefiningFunctionResult(:SPO2 => res)
