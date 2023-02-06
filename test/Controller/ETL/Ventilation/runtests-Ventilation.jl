@@ -115,3 +115,26 @@ end
     @test result[:positiveExpiratoryPressure] === missing
 
 end
+
+
+@testset "Test Ventilation.computeSPO2" begin
+
+    df = DataFrame(
+        terseForm = [
+            1,
+            "111",
+            112,
+            112],
+        attributeDictionaryPropName = [
+            "case1",
+            "PtAssessment_SpO2msmt",
+            "PtAssessment_SpO2msmt",
+            "PtAssessment_SpO2msmt",]
+        )
+    result = ETL.Ventilation.computeSPO2(df)
+
+    @test result == Dict(
+        :SPO2 => 111.67
+    )
+
+end
