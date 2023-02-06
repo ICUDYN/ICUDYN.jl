@@ -17,6 +17,7 @@ debug-scripts/*
 
 # Ignore the developer logs dir
 logs/*
+!logs/.gitkeep
 
 # Ignore Documenter.jl build dir
 docs/build/
