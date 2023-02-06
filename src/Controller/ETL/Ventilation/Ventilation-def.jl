@@ -5,3 +5,4 @@ function computeRespiratoryRate end
 function computeFio2 end
 function computePao2OverFio2 end
 function computePositiveExpiratoryPressure end
+function computeSPO2 end

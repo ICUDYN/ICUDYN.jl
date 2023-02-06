@@ -1,5 +1,3 @@
-
-
 function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 
     debitO2 = criticalVentilType = nonCriticalVentilType = missing
@@ -187,4 +185,16 @@ function ETL.Ventilation.computePositiveExpiratoryPressure(window::DataFrame, oh
     end
 
     return RefiningFunctionResult(:positiveExpiratoryPressure => res)
+end
+
+function ETL.Ventilation.computeSPO2(window::DataFrame)
+
+    res = missing
+
+    res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
+            window,
+            "PtAssessment_SpO2msmt",
+            n -> round(mean(n), digits=2))
+
+    return RefiningFunctionResult(:SPO2 => res)
 end
