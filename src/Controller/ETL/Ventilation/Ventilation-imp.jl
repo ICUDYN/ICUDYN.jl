@@ -2,59 +2,81 @@
 
 function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 
-    debitO2 = criticalVentilType = nonCriticalVentilType = missing
+    ventilTypeArray = Vector{String}()
+    ventilTypeString = missing
 
-    criticalVentilType = window |>
-    n -> ICUDYNUtil.getNonMissingValues(
-        n,
-        :attributeDictionaryPropName,
-        "PtAssessment_VentModeInt.VentModeList",
-        :terseForm ) |>
-    n -> if isempty(n) return missing else n end |>
-    n-> if any(in(["VAC", "VS-AI", "VS AI"]).(n)) #TODO Bapt : in() or contains() ? check in excel file
-        return "invasive"
-    elseif any(in(["VNI-AI", "VNI AI"]).(n))
-        return "non_invasive"
-    elseif any(in(["optiflow", "airvo2"]).(n))
-        return "OHD"
-    else
-        return missing
-    end
+    debitO2 = missing
+    ventilCritical = ventilInvasive = missing
 
-     # NOTE: This means that the presence of debit O2 has precedence over the previous
-    debitO2 = window |>
+    # get all O2 debits
+    debitsO2 = window |>
     n -> ICUDYNUtil.getNonMissingValues(
         n,
         :attributeDictionaryPropName,
         "PtAssessment_O2DeliveryInt.Debit_O2",
         :terseForm ) |>
-    n -> if isempty(n) return missing else ICUDYNUtil.getMostFrequentValue(n) end
-    # Use the most frequent value.
-    # We don't use the mean because we don't want to mix with the values
-    # from spontaneous ventilation (cf window 31 of BERGOT YVES)
+    n -> if isempty(n) return missing else n end
 
-    nonCriticalVentilType = missing
-
-    if(debitO2 !== missing)
-        if debitO2 == "AA"
-            nonCriticalVentilType = "ambiant_air"
-            debitO2=0
-        elseif !isnothing(match(r"\d+\.?\d*",debitO2))
-            debitO2 = debitO2 |>
-            n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)
-
-            if (debitO2 >= 30 )
-                criticalVentilType = "OHD"
-            else
-                nonCriticalVentilType = "spontaneous_ventilation"
+    # refine array to get corresponding float values
+    if(debitsO2 !== missing)
+        for i in eachindex(debitsO2)
+            if "AA" in debitsO2[i]
+                debitsO2[i] = 0 #TODO : to discuss with the point below, would be "missing" and not 0 because it would affect the mean debit otherwise
+            elseif !isnothing(match(r"\d+\.?\d*",debitO2))
+                debitsO2[i] = debitO2[i] |>
+                n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)
             end
         end
     end
 
+    # get the most frequent debit
+    mostFrequentDebitO2 = ICUDYNUtil.getMostFrequentValue(debitsO2)
+    # We don't use the mean because we don't want to mix with the values
+    # from spontaneous ventilation (cf window 31 of BERGOT YVES)
+
+    #TODO Bapt : previous comment to discuss, found a patient  with a window containing following debits, once each: 1, 5, 6, 4, 7, 10
+    #Si cas similaires, la variable perd tout son sens si on prend la valeur la plus fréquente
+
+    # get ventil types
+    ventilTypes = window |>
+    n -> ICUDYNUtil.getNonMissingValues(
+        n,
+        :attributeDictionaryPropName,
+        "PtAssessment_VentModeInt.VentModeList",
+        :terseForm ) |>
+    n -> if isempty(n) return missing else n end
+
+    # get all ventil types occurences
+    if any(in(["VAC", "VS-AI", "VS AI"]).(ventilTypes)) #TODO Bapt : in() or contains() ? check in excel file
+        push!(ventilTypeArray,"invasive")
+    elseif any(in(["VNI-AI", "VNI AI"]).(ventilTypes))
+        push!(ventilTypeArray,"VNI")
+    elseif any(in(["optiflow", "airvo2"]).(ventilTypes)) || any(x->(x>=30 && x<55), debitsO2) # 55 because of issue #13. otherwise 60
+        push!(ventilTypeArray,"OHD")
+    elseif any(x->(x>0 && x<30), debitsO2)
+        push!(ventilTypeArray,"O2")
+    elseif any(x->x==0, debitsO2)
+        push!(ventilTypeArray,"ambiant_air")
+    end
+
+    if !isempty(ventilTypeArray)
+        ventilTypeString = join(ventilTypeArray, ',')
+        ventilCritical = ventilInvasive = false
+    end
+
+    if any(in(["invasive", "VNI", "OHD"]).(ventilTypeArray))
+        ventilCritical = true
+    end
+
+    if "invasive" in ventilTypeArray
+        ventilInvasive = true
+    end
+
     return RefiningFunctionResult(
-        :debitO2 => debitO2,
-        :criticalVentilType => criticalVentilType,
-        :nonCriticalVentilType => nonCriticalVentilType
+        :ventilType => ventilTypeString,
+        :debitO2 => mostFrequentDebitO2,
+        :ventilCritical => ventilCritical,
+        :ventilInvasive => ventilInvasive
     )
 
 end

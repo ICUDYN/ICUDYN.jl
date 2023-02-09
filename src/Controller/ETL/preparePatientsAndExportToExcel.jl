@@ -29,7 +29,6 @@ function ETL.preparePatientsAndExportToExcel(
                 r.attributeDictionaryPropName ∈ [
                     "PtAssessment_VentModeInt.VentModeList",
                     "PtAssessment_O2DeliveryInt.Debit_O2",
-                    "PtAssessment_VentModeInt.VentModeList",
                     "PtAssessment_Calcul_seances_VS_sur_tube.Etat",
                     "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
                     "PtAssessment_Volume_minute_lmin.mesure",
