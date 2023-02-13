@@ -5,7 +5,6 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
     ventilTypeArray = Vector{String}()
     ventilTypeString = missing
 
-    debitO2 = missing
     ventilCritical = ventilInvasive = missing
 
     # get all O2 debits
@@ -18,19 +17,21 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
     n -> if isempty(n) return missing else n end
 
     # refine array to get corresponding float values
-    if(debitsO2 !== missing)
+    if !ismissing(debitsO2)
         for i in eachindex(debitsO2)
-            if "AA" in debitsO2[i]
-                debitsO2[i] = 0 #TODO : to discuss with the point below, would be "missing" and not 0 because it would affect the mean debit otherwise
-            elseif !isnothing(match(r"\d+\.?\d*",debitO2))
-                debitsO2[i] = debitO2[i] |>
+            if occursin("AA",debitsO2[i])
+                debitsO2[i] = missing #TODO : to discuss with the point below, would be "missing" and not 0 because it would affect the mean debit otherwise
+            elseif !isnothing(match(r"\d+\.?\d*",debitsO2[i]))
+                debitsO2[i] = debitsO2[i] |>
                 n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)
             end
         end
     end
 
+    debitsO2 = skipmissing(debitsO2)
     # get the most frequent debit
-    mostFrequentDebitO2 = ICUDYNUtil.getMostFrequentValue(debitsO2)
+    meanDebitO2 = mean(debitsO2)
+
     # We don't use the mean because we don't want to mix with the values
     # from spontaneous ventilation (cf window 31 of BERGOT YVES)
 
@@ -49,13 +50,17 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
     # get all ventil types occurences
     if any(in(["VAC", "VS-AI", "VS AI"]).(ventilTypes)) #TODO Bapt : in() or contains() ? check in excel file
         push!(ventilTypeArray,"invasive")
-    elseif any(in(["VNI-AI", "VNI AI"]).(ventilTypes))
+    end
+    if any(in(["VNI-AI", "VNI AI"]).(ventilTypes))
         push!(ventilTypeArray,"VNI")
-    elseif any(in(["optiflow", "airvo2"]).(ventilTypes)) || any(x->(x>=30 && x<55), debitsO2) # 55 because of issue #13. otherwise 60
+    end
+    if any(in(["optiflow", "airvo2"]).(ventilTypes)) || any(x->(x>=30 && x<55), debitsO2) # 55 because of issue #13. otherwise 60
         push!(ventilTypeArray,"OHD")
-    elseif any(x->(x>0 && x<30), debitsO2)
+    end
+    if any(x->(x>0 && x<30), debitsO2)
         push!(ventilTypeArray,"O2")
-    elseif any(x->x==0, debitsO2)
+    end
+    if any(x->ismissing(x), debitsO2)
         push!(ventilTypeArray,"ambiant_air")
     end
 
@@ -74,7 +79,7 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 
     return RefiningFunctionResult(
         :ventilType => ventilTypeString,
-        :debitO2 => mostFrequentDebitO2,
+        :debitO2 => meanDebitO2,
         :ventilCritical => ventilCritical,
         :ventilInvasive => ventilInvasive
     )

@@ -9,8 +9,8 @@ include("../../../runtests-prerequisite.jl")
             "VAC",
             "VS-AI",
             "AA",
-            "4 l/min",
-            "4 l/min"],
+            "2 l/min",
+            "6 l/min"],
         attributeDictionaryPropName = [
             "case1",
             "PtAssessment_VentModeInt.VentModeList",
@@ -24,8 +24,9 @@ include("../../../runtests-prerequisite.jl")
 
     @test result == Dict(
         :debitO2 => 4,
-        :criticalVentilType => "invasive",
-        :nonCriticalVentilType => "spontaneous_ventilation"
+        :ventilType => "invasive,OHD,O2",
+        :ventilCritical => true,
+        :ventilInvasive => true
     )
 
     #TODO Bapt : do more tests
