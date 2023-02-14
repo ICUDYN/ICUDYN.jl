@@ -462,7 +462,9 @@ function ETL.refineWindow2ndPass!(
         fctResult)
 
 
-    ### VENTILATION ###
+    # ########### #
+    # VENTILATION #
+    # ########### #
 
     # Useful variables
     invasive = ETL.getCachedVariable(cache, :criticalVentilType) === "invasive"
@@ -491,16 +493,16 @@ function ETL.refineWindow2ndPass!(
         ETL.Ventilation.computePositiveExpiratoryPressure,
         fctResult)
 
-    # Compute FiO2
-    fctResult = passmissing(ETL.Ventilation.computeFio2)(
-        rawWindow,
-        critical
-    )
-    ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
-        refinedWindow,
-        ETL.Ventilation,
-        ETL.Ventilation.computeFio2,
-        fctResult)
+    # # Compute FiO2
+    # fctResult = passmissing(ETL.Ventilation.computeFio2)(
+    #     rawWindow,
+    #     critical
+    # )
+    # ETL.enrichWindowModulesResultsWith2ndPassFunctionResult!(
+    #     refinedWindow,
+    #     ETL.Ventilation,
+    #     ETL.Ventilation.computeFio2,
+    #     fctResult)
 
     # Compute Volume
     fctResult = passmissing(ETL.Ventilation.computeRespiratoryVolumeMinute)(
@@ -583,6 +585,28 @@ function ETL.refreshCache!(
             ETL.updateCache!(cache, :anySedative, anySedative)
         end
     end
+
+    # Same window SPO2
+    ETL.updateCache!(
+        cache,
+        :sameWindowSPO2,
+        sameWindowValue(row,:Ventilation_SPO2)
+    )
+
+    # Same window respiratoryRate
+    ETL.updateCache!(
+        cache,
+        :sameWindowRespiratoryRate,
+        sameWindowValue(row,:Ventilation_respiratoryRate)
+    )
+
+    # Same window FiO2
+    ETL.updateCache!(
+        cache,
+        :sameWindowFiO2,
+        sameWindowValue(row,:Ventilation_fiO2)
+    )
+
 
 end
 
