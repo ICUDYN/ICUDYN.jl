@@ -140,8 +140,8 @@ end
         )
     result = ETL.Physiological.computeHeartRateVars(df)
 
-    @test all(ismissing.(collect(values(result))))    
-    
+    @test all(ismissing.(collect(values(result))))
+
 end
 
 
@@ -250,7 +250,7 @@ end
 
     result = ETL.Physiological.computeNeuroGlasgow(df,true)
 
-    @test result == Dict(:neuroGlasgow => 16)
+    @test result == Dict(:neuroGlasgow => missing)
 
 
 

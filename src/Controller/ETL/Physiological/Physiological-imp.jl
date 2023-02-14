@@ -6,9 +6,9 @@ Computes the gender of the patient
 function ETL.Physiological.computeGender(window::DataFrame)
     res = window |>
     n -> ICUDYNUtil.getNonMissingValues(
-        n, 
+        n,
         :attributeDictionaryPropName,
-        "ptDemographic_Demographic90Int.Sexe", 
+        "ptDemographic_Demographic90Int.Sexe",
         :terseForm ) |>
     n -> if isempty(n) return missing else n end |>
     (string ∘ first) |>
@@ -16,13 +16,13 @@ function ETL.Physiological.computeGender(window::DataFrame)
         return "male"
     elseif n == "2"
         return "female"
-    else  
+    else
         @error "Unknown gender code[$n]"
         return ICUDYNUtil.getValueOfError()
     end
-    
+
     return RefiningFunctionResult(:gender => res)
-    
+
 end
 
 
@@ -33,8 +33,8 @@ Computes the age of the patient
 """
 function ETL.Physiological.computeAge(window::DataFrame)
     res =  ICUDYNUtil.getNumericValueFromWindowTerseForm(
-        window, 
-        "ptDemographic_patientAgeInt.ageValue", 
+        window,
+        "ptDemographic_patientAgeInt.ageValue",
         n-> first(n))
 
     return RefiningFunctionResult(:age => res)
@@ -64,8 +64,8 @@ end
 # """
 function ETL.Physiological.computeWeight(window::DataFrame)
     res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
-        window, 
-        "PtAssessment_ptWeightIntervention.ptWeight", 
+        window,
+        "PtAssessment_ptWeightIntervention.ptWeight",
         n->round(Int,mean(n)))
 
     return RefiningFunctionResult(:weight => res)
@@ -78,7 +78,7 @@ end
 # Computes the heart rate of the patient
 # """
 function ETL.Physiological.computeHeartRateVars(window::DataFrame)
-    
+
     min,max,_mean,_median = window |>
         n -> ICUDYNUtil.getNumericValueFromWindowTerseForm(
             n,
@@ -91,7 +91,7 @@ function ETL.Physiological.computeHeartRateVars(window::DataFrame)
                 n
              end |>
         n -> tuple(n...)
-    
+
 
     Dict(
         :heartRateMin => min,
@@ -99,7 +99,7 @@ function ETL.Physiological.computeHeartRateVars(window::DataFrame)
         :heartRateMean => _mean,
         :heartRateMedian => _median
     )
-    
+
 end
 
 
@@ -109,7 +109,7 @@ end
 Computes the urine volume of the patient
 """
 function ETL.Physiological.computeUrineVolume(window::DataFrame)
-    
+
     res = window |>
     n -> getNonMissingValues(n,:attributeDictionaryPropName,
     "PtSiteCare_urineOuputInt.outputVolume", :verboseForm) |>
@@ -165,9 +165,9 @@ Computes the Glasgow score of the patient
 """
 function ETL.Physiological.computeNeuroGlasgow(window::DataFrame, anySedative::Bool)
 
-
-    if anySedative
-        res = 16
+    #TODO : discuter de si on garde le score si patient sédaté ?
+    if anySedative # cf https://pubmed.ncbi.nlm.nih.gov/10708172/
+        res = missing
     else
         res = ICUDYNUtil.getNumericValueFromWindowTerseForm(
             window,
@@ -259,7 +259,7 @@ function ETL.Physiological._computeDouleurStringValue(window::DataFrame)
             "PtAssessment_Evaluation_douleur.EV_analogique",
             :verboseForm) |>
         n -> if isempty(n) return missing else n end |>
-        n -> rmAccentsAndLowercaseAndStrip.(n) |> 
+        n -> rmAccentsAndLowercaseAndStrip.(n) |>
         ICUDYNUtil.getMostFrequentValue
 
 end
@@ -273,7 +273,7 @@ end
 function ETL.Physiological._computeDouleurBpsNumValue(window::DataFrame)
     return ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
-        "PtAssessment_Echelle_comportementale_douleur.Total_BPS", 
+        "PtAssessment_Echelle_comportementale_douleur.Total_BPS",
         n -> round(Int,mean(n)))
 end
 
