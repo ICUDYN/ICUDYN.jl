@@ -4,7 +4,7 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 
     ventilTypeArray = Vector{String}()
     ventilTypeString = missing
-
+    meanDebitO2 = missing
     ventilCritical = ventilInvasive = missing
 
     # get all O2 debits
@@ -26,11 +26,19 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
                 n-> match(r"\d+\.?\d*",n).match |> n -> parse(Float64,n)
             end
         end
+
+        println("debitO2 before skipmissing : ", debitsO2)
+
+        debitsO2 = skipmissing(debitsO2)
+        # get the most frequent debit
+
+        println("debitO2 after skipmissing : ", debitsO2)
+
+        if !all(ismissing.(debitsO2))
+            meanDebitO2 = mean(debitsO2)
+        end
     end
 
-    debitsO2 = skipmissing(debitsO2)
-    # get the most frequent debit
-    meanDebitO2 = mean(debitsO2)
 
     # We don't use the mean because we don't want to mix with the values
     # from spontaneous ventilation (cf window 31 of BERGOT YVES)
@@ -47,21 +55,31 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
         :terseForm ) |>
     n -> if isempty(n) return missing else n end
 
-    # get all ventil types occurences
-    if any(in(["VAC", "VS-AI", "VS AI"]).(ventilTypes)) #TODO Bapt : in() or contains() ? check in excel file
-        push!(ventilTypeArray,"invasive")
+    if !ismissing(ventilTypes)
+        # get all ventil types occurences
+        if any(in(["VAC", "VS-AI", "VS AI"]).(ventilTypes)) #TODO Bapt : in() or contains() ? check in excel file
+            push!(ventilTypeArray,"invasive")
+        end
+
+        if any(in(["VNI-AI", "VNI AI"]).(ventilTypes))
+            push!(ventilTypeArray,"VNI")
+        end
+
+        if any(in(["optiflow", "airvo2"]).(ventilTypes))
+            push!(ventilTypeArray,"OHD")
+        end
     end
-    if any(in(["VNI-AI", "VNI AI"]).(ventilTypes))
-        push!(ventilTypeArray,"VNI")
-    end
-    if any(in(["optiflow", "airvo2"]).(ventilTypes)) || any(x->(x>=30 && x<55), debitsO2) # 55 because of issue #13. otherwise 60
-        push!(ventilTypeArray,"OHD")
-    end
-    if any(x->(x>0 && x<30), debitsO2)
-        push!(ventilTypeArray,"O2")
-    end
-    if any(x->ismissing(x), debitsO2)
-        push!(ventilTypeArray,"ambiant_air")
+
+    if !ismissing(debitsO2)
+        if any(x->(x>=30 && x<55), debitsO2) # 55 because of issue #13. otherwise 60
+            push!(ventilTypeArray,"OHD")
+        end
+        if any(x->(x>0 && x<30), debitsO2)
+            push!(ventilTypeArray,"O2")
+        end
+        if any(x->ismissing(x), debitsO2)
+            push!(ventilTypeArray,"ambiant_air")
+        end
     end
 
     if !isempty(ventilTypeArray)
