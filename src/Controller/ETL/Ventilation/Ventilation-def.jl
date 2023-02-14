@@ -1,7 +1,10 @@
 function computeVentilationTypeAndDebitO2 end
 function computeUnplugAttemptInvasiveVentilation end
 function computeRespiratoryVolumeMinute end
-function computeRespiratoryRate end
-function computeFio2 end
+# function computeRespiratoryRate end
+# function computeFio2 end
 function computePao2OverFio2 end
 function computePositiveExpiratoryPressure end
+# function computeSPO2 end
+# function computeEWSO2trunc end
+function compute_respiratoryRate_FiO2_SPO2_WSO2trunc end

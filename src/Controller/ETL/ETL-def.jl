@@ -26,7 +26,6 @@ function refreshCache! end
 function enrichModuleResultWithFunctionResult! end
 function enrichWindowModulesResultsWith2ndPassFunctionResult! end
 
-
 # Deprecated
 function preparePatientsFromRawExcelFile end
 function getPatientDFFromExcel end

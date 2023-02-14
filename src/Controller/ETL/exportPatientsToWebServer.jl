@@ -13,8 +13,6 @@ function ETL.exportPatientsToWebServer(
             maxNumberOfPatients = maxNumberOfPatients
         )
     end
-
-
 end
 
 function ETL.exportPatientsToWebServer(

@@ -114,3 +114,7 @@ end
         [1,"1","null","NULL",missing,"3.3","1,1","100, 200"]
     )
 end
+
+@testset "Test ICUDYNUtil.getModuleRootPath" begin
+    ICUDYNUtil.getModuleRootPath()
+end
