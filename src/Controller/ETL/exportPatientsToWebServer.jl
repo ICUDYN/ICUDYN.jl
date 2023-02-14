@@ -33,7 +33,7 @@ function ETL.exportPatientsToWebServer(
 
     ETL.preparePatientsAndExportToExcel(
         patientsInSrcDB,
-        true, # useCache
+        false, # useCache
         dbconn,
         ;filepath = filepath
     )
