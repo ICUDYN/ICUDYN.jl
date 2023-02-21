@@ -4,7 +4,10 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
     unplugAttemptInvasiveVentilationDuration = missing
 
     # Unplug attempt only makes sense in the context of invasive ventilation type
-    if invasive
+    # TODO : if invasive commented for the moment. We may need to detect invasive ventil type in previous windows
+    # Maybe possible to use a boolean, true if invasive ventil is detected, back to false when unplung attempt occurs
+
+    #if invasive
 
         unplugAttemptInvasiveVentilationFromVentMode = window |>
         n -> ICUDYNUtil.getNonMissingValues(
@@ -31,7 +34,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
             "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
             maximum)
 
-    end
+    #end
 
 
 

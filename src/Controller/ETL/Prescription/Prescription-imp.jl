@@ -1,5 +1,5 @@
 function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
-    
+
     dict = RefiningFunctionResult()
     prefiltered = window |>
         n -> filter(x -> startswith(x.attributeDictionaryPropName,"PtMedication_"),n) |>
@@ -22,18 +22,18 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         :epinephrine => r"PtMedication_epinephrine"i,
         # Dobutamine is present in the data in unit gamma (i.e. micro gram) per kg per min
         :dobutamine => (
-            regex =  r"dobutamine"i, 
+            regex =  r"dobutamine"i,
             attributeDictionaryPropNameForDrip = r"PtMedication_dripAdmIntervention.formularyAdditiveWtDoseRate"i
             ),
-    
+
         #
-        # Sedative agents    
+        # Sedative agents
         #
         :midazolam => (regex = r"midazolam"i, category = "sedative"),
         :sufentanyl => (regex = r"sufenta"i, category = "sedative"),
         :propofol => (regex = r"propofol"i, category = "sedative"),
         :clonidine => (regex = r"clonidine"i, category = "sedative"),
-        
+
         #
         # Blocking agents, Induction agents
         #
@@ -42,7 +42,7 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         :rocuronium => r"rocuronium"i,
         :etomidate => r"etomidate|hypnomidate"i,
         :celocurine => r"celocurine"i,
-        
+
         #
         # Anticoagulant
         #
@@ -54,18 +54,18 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         :calciparine => r"calciparine"i,
         :naco => r"naco|apixaban|eliquis|pradaxa|dabigatran|xarelto|rivaroxaban"i,
         :coumadine => r"coumadine|warfarine|previscan|fluindione|sintrom|acenocoumarole"i,
-        
-        # 
+
+        #
         # Antiplatelet
         #
         :aspirine1 => r"aspirine|aspegic|kardegic|ticlid|ticlopidine"i, # PROBLEM
         :aspirine2 => r"efient|prasugrel|plavix|clopidogrel|brilique|ticagrélor"i, # PROBLEM
-        
+
         #
         # Insuline
         #
         :insuline => r"insuline"i,
-        
+
         #
         # Antibiotics
         #
@@ -87,7 +87,7 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         :sulfamethoxazole => r"sulfamethoxazole|bactrim|cotrimoxazole"i,
         :oxacilline => r"oxacilline|bristopen"i,
         :gentamicine => r"gentamicine|gentalline"i,
-        
+
         #
         # Antifungal
         #
@@ -96,7 +96,7 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         :echinocandine => r"echinocandine|mycamine|mycafungin"i,
         :ambisome => r"ambisome|amphotericine"i,
         :fluconazole => r"fluconazole|triflucan"i,
-        
+
         #
         # Anti-hypertensive_agent
         #
@@ -104,29 +104,29 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
         :nicardipine => r"nicardipine|loxen"i,
         :labetalol => r"labetalol|trandate"i,
         :risordan => r"risordan|trinitrine"i,
-        
+
         #
         # Diuretic_agent
         #
         :furosemide => r"furosemide|frusemide|lasilix"i,
-        
+
         #
         # Steroids
         #
         :steroids => r"prednisolone|prednisone|solumedrol|solupred|hydrocortisone"i,
         :hydrocortisone => r"hydrocortisone|HSHC"i,
-        
+
         #
         # Temperature_mgt_agent
         #
         :paracetamol => r"paracetamol|dafalgan|dafalgan|efferalgan|perfalgan"i,
-        
+
         #
         # Analgesic
         #
         :morphine => r"morphine"i,
         :nefopam => r"nefopam|acupan"i,
-        
+
         #
         # Arrhythmia
         #
@@ -155,7 +155,7 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
             _regex = v
         end
 
-        
+
         moleculeDripMean = prefiltered |>
             n -> filter(x -> x.attributeDictionaryPropName == attributeDictionaryPropNameForDrip, n) |>
             n -> filter(x -> !isnothing(match(_regex, x.interventionLongLabel)),n) |>
@@ -174,19 +174,19 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
             n -> mean(n) |>
             n -> round(n, digits = 2)
 
-        
+
         moleculeDripSymbol = Symbol("$(k)Drip")
         moleculeDiscreteSymbol = Symbol("$(k)Discrete")
 
         if isa(v, NamedTuple)
             if haskey(v,:category)
                 if isa(moleculeDripMean,Number)
-                    if moleculeDripMean > 0 
+                    if moleculeDripMean > 0
                         dict[Symbol(v.category)] = true
                     end
                 end
                 if isa(moleculeDiscreteMean,Number)
-                    if moleculeDiscreteMean > 0 
+                    if moleculeDiscreteMean > 0
                         dict[Symbol(v.category)] = true
                     end
                 end
@@ -203,8 +203,8 @@ function ETL.Prescription.computePrescriptionBaseVars(window::DataFrame)
 end
 
 function ETL.Prescription.computeAmineAgentsAdditionalVars(
-    norepinephrineMeanMgHeure, 
-    epinephrineMeanMgHeure, 
+    norepinephrineMeanMgHeure,
+    epinephrineMeanMgHeure,
     dobutamineMeanGammaKgMinute,
     weightAtAdmission)
 
@@ -213,11 +213,11 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
     amineAgent = false
 
     if !ismissing(weightAtAdmission)
-        
+
         #Norepinephrine
         if !ismissing(norepinephrineMeanMgHeure)
             norepinephrineMeanGammaKgMinute = round((norepinephrineMeanMgHeure * 1000 / weightAtAdmission / 60), digits=2)
-            
+
             if norepinephrineMeanGammaKgMinute < 0.5
                 norepinephrineStatus = "LOW"
             elseif 0.5 <= norepinephrineMeanGammaKgMinute && norepinephrineMeanGammaKgMinute < 1
@@ -226,11 +226,11 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
                 norepinephrineStatus = "VERY_HIGH"
             end
         end
-        
+
         #Epinephrine
-        if !ismissing(epinephrineMeanMgHeure)           
+        if !ismissing(epinephrineMeanMgHeure)
             epinephrineMeanGammaKgMinute = round((epinephrineMeanMgHeure * 1000 / weightAtAdmission / 60), digits = 2)
-            
+
             if epinephrineMeanGammaKgMinute < 0.5
                 epinephrineStatus = "LOW"
             elseif 0.5 <= epinephrineMeanGammaKgMinute && epinephrineMeanGammaKgMinute < 1
@@ -258,7 +258,7 @@ function ETL.Prescription.computeAmineAgentsAdditionalVars(
     if (!ismissing(norepinephrineMeanMgHeure)
         && !ismissing(epinephrineMeanMgHeure)
         && !ismissing(dobutamineMeanGammaKgMinute))
-        
+
         amineAgent = true
     end
 
@@ -275,7 +275,7 @@ end
 
 
 function ETL.Prescription.computeSedativeAgentsOtherVars(window::DataFrame)
-    
+
     isofluraneStatus = missing
 
     isofluraneExpiratoryFractionMean = ICUDYNUtil.getNumericValueFromWindowTerseForm(
