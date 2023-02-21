@@ -14,25 +14,19 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
         :terseForm ) |>
     n -> if isempty(n) return missing else n end
 
-    println("debitO2 : ", debitsO2)
     # refine array to get corresponding float values
     if !ismissing(debitsO2)
         for i in eachindex(debitsO2)
             if occursin("AA",debitsO2[i])
                 debitsO2[i] = missing #TODO : to discuss with the point below, would be "missing" and not 0 because it would affect the mean debit otherwise
             elseif !isnothing(match(r"\d+\.?\d*",debitsO2[i]))
-                println("deb :",debitsO2[i])
                 debitsO2[i] = debitsO2[i] |>
                 n-> match(r"\d+\.?\d*",n).match
             end
         end
 
-        println("debitO2 before skipmissing : ", debitsO2)
-
         debitsO2 = skipmissing(debitsO2)
         # get the most frequent debit
-
-        println("debitO2 after skipmissing : ", debitsO2)
 
         if !all(ismissing.(debitsO2))
             debitsO2 = parse.(Float64, debitsO2)
