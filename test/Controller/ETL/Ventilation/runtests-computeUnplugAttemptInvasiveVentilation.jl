@@ -20,7 +20,7 @@
             "PtAssessment_Calcul_seances_VS_sur_tube.Duree",
             "PtAssessment_Calcul_seances_VS_sur_tube.Duree"]
         )
-    result = ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(df,true)
+    result = ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(df)
 
     @test result == Dict(
         :unplugAttemptInvasiveVentilation => true,

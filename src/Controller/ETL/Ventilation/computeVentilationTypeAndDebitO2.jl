@@ -1,4 +1,7 @@
-function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
+function ETL.Ventilation.computeVentilationTypeAndDebitO2(
+    window::DataFrame,
+    unplugAttemptInvasiveVentilation::Union{Bool, Missing}
+)
 
     ventilTypeArray = Vector{String}()
     ventilTypeString = missing
@@ -11,7 +14,8 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
         n,
         :attributeDictionaryPropName,
         "PtAssessment_O2DeliveryInt.Debit_O2",
-        :terseForm ) |>
+        :terseForm
+    ) |>
     n -> if isempty(n) return missing else n end
 
     # refine array to get corresponding float values
@@ -52,7 +56,10 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
 
     if !ismissing(ventilTypes)
         # get all ventil types occurences
-        if any(in(["VAC", "VS-AI", "VS AI"]).(ventilTypes)) #TODO Bapt : in() or contains() ? check in excel file
+        if (
+            any(in(["VAC", "VS-AI", "VS AI"]).(ventilTypes))
+            || unplugAttemptInvasiveVentilation === true
+        )
             push!(ventilTypeArray,"invasive")
         end
 
@@ -76,6 +83,8 @@ function ETL.Ventilation.computeVentilationTypeAndDebitO2(window::DataFrame)
             push!(ventilTypeArray,"ambiant_air")
         end
     end
+
+    ventilTypeArray = unique(ventilTypeArray)
 
     if !isempty(ventilTypeArray)
         ventilTypeString = join(ventilTypeArray, ',')
