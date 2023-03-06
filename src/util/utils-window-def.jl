@@ -7,3 +7,4 @@ function sameWindowValue end
 function closestNonMissingValue end
 function closestNonMissingValueInCurrentOrPreviousWindows end
 function closestNonMissingValueInCurrentOrNextWindows end
+function computeStatisticsFromVector end

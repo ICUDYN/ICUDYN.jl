@@ -36,7 +36,7 @@ end
 function ICUDYNUtil.getNumericValueFromWindowTerseForm(
     window::DataFrame,
     attribute::String,
-    fun::Union{Function,Missing}
+    fun::Union{Function,Missing}=missing
 )
     res = window |>
     n -> ICUDYNUtil.getNonMissingValues(
@@ -160,5 +160,32 @@ function ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(
         end
     end
 
+
+end
+
+
+function ICUDYNUtil.computeStatisticsFromVector(x::Union{Missing,AbstractArray}; _digits::Int64=2)
+
+    if ismissing(x)
+        d = Dict(
+            :min    => missing,
+            :max    => missing,
+            :mean   => missing,
+            :med    => missing,
+            :stdev  => missing
+        )
+
+    else
+        d = Dict(
+            :min    => minimum(x),
+            :max    => maximum(x),
+            :mean   => round(mean(x); digits=_digits),
+            :med    => median(x),
+            :stdev  => round(std(x); digits=_digits)
+        )
+
+    end
+
+    return d
 
 end
