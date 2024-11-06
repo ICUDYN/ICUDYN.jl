@@ -15,4 +15,4 @@ using DataStructures
 using Dates, Base.StackTraces, TimeZones, LibPQ, InfoZIP, Serialization,
       DataFrames, XLSX, Decimals, ConfParser, LoggingExtras
 using Statistics, Dates, TimeZones, Distributed, CSV, DataFrames, InfoZIP, Query, TimeZones, Unicode
-using PostgresORM, LibPQ, ODBC
+using PostgresORM, LibPQ, ODBC, MySQL

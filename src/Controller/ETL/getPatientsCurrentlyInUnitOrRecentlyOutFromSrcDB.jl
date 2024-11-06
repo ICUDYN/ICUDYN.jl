@@ -1,4 +1,4 @@
-function ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB(dbconn::ODBC.Connection)
+function ETL.getPatientsCurrentlyInUnitOrRecentlyOutFromSrcDB(dbconn::Union{ODBC.Connection,MySQL.Connection})
 
     patientsCurrentlyInUnit = ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn)
     patientsRecentlyOut = ETL.getPatientsRecentlyOutFromSrcDB(dbconn)

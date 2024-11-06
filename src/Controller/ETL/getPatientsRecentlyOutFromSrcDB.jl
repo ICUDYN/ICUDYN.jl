@@ -1,4 +1,4 @@
-function ETL.getPatientsRecentlyOutFromSrcDB(dbconn::ODBC.Connection)
+function ETL.getPatientsRecentlyOutFromSrcDB(dbconn::Union{ODBC.Connection,MySQL.Connection})
 
     # Get a first list of patients names
     queryString = "

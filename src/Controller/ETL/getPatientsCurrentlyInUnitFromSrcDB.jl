@@ -1,4 +1,4 @@
-function ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn::ODBC.Connection)
+function ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn::Union{ODBC.Connection,MySQL.Connection})
 
     # Get a first list of patients names
     queryString = "

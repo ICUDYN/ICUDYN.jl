@@ -23,23 +23,36 @@ end
 
 function ICUDYNUtil.openSrcDBConn()
 
-    if !haskey(ODBC.dsns(),"ICCA")
-        ODBC.adddriver("MS SQL Driver", getConf("database-icca","driver_path"))
-        ODBC.adddsn(
-            "ICCA",
-            "MS SQL Driver"
-            ;SERVER = host = getConf("database-icca","host"),
-            DATABASE = host = getConf("database-icca","database"),
-            PORT = host = getConf("database-icca","port"),
-            TrustServerCertificate="yes"
+    print("Getting Database type...")
+
+    if getConf("database-icca","type") == "MicrosoftSQL"
+        print("Database type : MicrosoftSQL")
+        if !haskey(ODBC.dsns(),"ICCA")
+            ODBC.adddriver("MS SQL Driver", getConf("database-icca","driver_path"))
+            ODBC.adddsn(
+                "ICCA",
+                "MS SQL Driver"
+                ;SERVER = host = getConf("database-icca","host"),
+                DATABASE = host = getConf("database-icca","database"),
+                PORT = host = getConf("database-icca","port"),
+                TrustServerCertificate="yes"
+            )
+        end
+
+        dbconn = ODBC.Connection(
+            "ICCA"
+            ;user = getConf("database-icca","user"),
+            password = getConf("database-icca","password")
         )
+
+
+    elseif getConf("database-icca","type") == "MySQL"
+        print("Database type : MicrosoftSQL")
+
+        dbconn = DBInterface.connect(MySQL.Connection, "127.0.0.1", "example_user", "example_password"; port=63306)
+
     end
 
-    dbconn = ODBC.Connection(
-        "ICCA"
-        ;user = getConf("database-icca","user"),
-        password = getConf("database-icca","password")
-    )
 end
 
 function ICUDYNUtil.openDBConnAndBeginTransaction()
@@ -65,5 +78,9 @@ function ICUDYNUtil.closeDBConn(conn::LibPQ.Connection)
 end
 
 function ICUDYNUtil.closeDBConn(conn::ODBC.Connection)
+    DBInterface.close!(conn)
+end
+
+function ICUDYNUtil.closeDBConn(conn::MySQL.Connection)
     DBInterface.close!(conn)
 end

@@ -16,7 +16,7 @@ function ETL.exportPatientsToWebServer(
 end
 
 function ETL.exportPatientsToWebServer(
-    dbconn::ODBC.Connection,
+    dbconn::Union{ODBC.Connection,MySQL.Connection},
     ;filepath = "$(tempname()).xlsx",
     maxNumberOfPatients::Union{Missing,Integer} = missing
 )

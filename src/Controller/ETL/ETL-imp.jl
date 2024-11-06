@@ -29,7 +29,7 @@ include("deprecated/excel-deprecated.jl")
 function ETL.getPatientRawDFFromSrcDB(
     patientIDs::Vector{T} where T <: Integer,
     useCache::Bool,
-    dbconn::ODBC.Connection
+    dbconn::Union{ODBC.Connection,MySQL.Connection}
 )
 
     # Get the cache file path
@@ -59,13 +59,13 @@ end
 
 function ETL.getPatientBasicInfoFromSrcDB(
     patientIDs::Vector{T} where T <:Integer,
-    dbconn::ODBC.Connection
+    dbconn::Union{ODBC.Connection,MySQL.Connection}
 )
     ETL.getPatientBasicInfoFromSrcDB(first(patientIDs), dbconn)
 
 end
 
-function ETL.getPatientBasicInfoFromSrcDB(patientID::Integer, dbconn::ODBC.Connection)
+function ETL.getPatientBasicInfoFromSrcDB(patientID::Integer, dbconn::Union{ODBC.Connection,MySQL.Connection})
 
     # Get a first list of patients names
     queryString = "
