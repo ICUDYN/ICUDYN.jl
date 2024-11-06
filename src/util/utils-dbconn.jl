@@ -23,10 +23,7 @@ end
 
 function ICUDYNUtil.openSrcDBConn()
 
-    print("Getting Database type...")
-
     if getConf("database-icca","type") == "MicrosoftSQL"
-        print("Database type : MicrosoftSQL")
         if !haskey(ODBC.dsns(),"ICCA")
             ODBC.adddriver("MS SQL Driver", getConf("database-icca","driver_path"))
             ODBC.adddsn(
@@ -47,10 +44,13 @@ function ICUDYNUtil.openSrcDBConn()
 
 
     elseif getConf("database-icca","type") == "MySQL"
-        print("Database type : MicrosoftSQL")
-
-        dbconn = DBInterface.connect(MySQL.Connection, "127.0.0.1", "example_user", "example_password"; port=63306)
-
+        
+        dbconn = DBInterface.connect(
+            MySQL.Connection,
+            getConf("database-icca","host"),
+            getConf("database-icca","user"),
+            getConf("database-icca","password");
+            port=getConf("database-icca","port"))
     end
 
 end
