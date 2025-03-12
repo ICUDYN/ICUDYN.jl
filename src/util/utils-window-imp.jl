@@ -164,26 +164,36 @@ function ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(
 end
 
 
-function ICUDYNUtil.computeStatisticsFromVector(x::Union{Missing,AbstractArray}; _digits::Int64=2)
+function ICUDYNUtil.computeStatisticsFromVector(x::Union{Missing,AbstractArray}, vStats::Vector{STATS}; _digits::Int64=2)
 
-    if ismissing(x)
-        d = Dict(
-            :min    => missing,
-            :max    => missing,
-            :mean   => missing,
-            :med    => missing,
-            :stdev  => missing
-        )
+    d = RefiningFunctionResult()
 
-    else
-        d = Dict(
-            :min    => minimum(x),
-            :max    => maximum(x),
-            :mean   => round(mean(x); digits=_digits),
-            :med    => median(x),
-            :stdev  => round(std(x); digits=_digits)
-        )
+    if !(ismissing(x) || isempty(x))
+        x=convert(Vector{Float64}, x)
 
+        if isempty(vStats)
+            error("Please provide a non-empty Vector{STATS}")
+        end
+
+        if Stats.min ∈ vStats || Stats.all ∈ vStats
+            d[:min] = minimum(x)
+        end
+
+        if Stats.max ∈ vStats || Stats.all ∈ vStats
+            d[:max] = maximum(x)
+        end
+
+        if Stats.mean ∈ vStats || Stats.all ∈ vStats
+            d[:mean] = round(mean(x); digits=_digits)
+        end
+
+        if Stats.median ∈ vStats || Stats.all ∈ vStats
+            d[:median] = median(x)
+        end
+
+        if Stats.stdev ∈ vStats || Stats.all ∈ vStats
+            d[:stdev] = round(std(x); digits=_digits)
+        end
     end
 
     return d

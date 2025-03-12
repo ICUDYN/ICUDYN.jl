@@ -118,3 +118,23 @@ end
 @testset "Test ICUDYNUtil.getModuleRootPath" begin
     ICUDYNUtil.getModuleRootPath()
 end
+
+@testset "Test ICUDYNUtil.mergeResultsDictionaries" begin
+
+#    !! TO COMMENT !!
+    main_dict=RefiningFunctionResult(:f=>0.0)
+    dict2=RefiningFunctionResult(:d=>3.0,:e=>4.0)
+    dict1=RefiningFunctionResult(:a=>1.0,:b=>2.0,:c=>dict2)
+    ICUDYNUtil.mergeResultsDictionaries!(main_dict,dict1)
+
+    targetDict = RefiningFunctionResult(
+        :a=>1.0,
+        :b=>2.0,
+        :c_d=>3.0,
+        :c_e=>4.0,
+        :f=>0.0
+    )
+
+    @test isequal(main_dict, targetDict)
+
+end

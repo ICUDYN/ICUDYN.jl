@@ -221,7 +221,6 @@ function ETL.combineRefinedWindows(refinedWindows::Vector{RefinedWindow})
         refinedWindowDict = RefinedWindowModuleResults()
 
         for (_module,dict) in refinedWindow
-
             ICUDYNUtil.mergeResultsDictionaries!(
                 refinedWindowDict, dict
                 ;keyPrefix = (string ∘ first ∘ propertynames)(_module)*"_"

@@ -2,11 +2,9 @@ function ETL.Ventilation.compute_respiratoryRate_FiO2_SPO2_WSO2trunc(window::Dat
 
     # respiratoryRate
     respiratoryRate = ICUDYNUtil.getNumericValueFromWindowTerseForm(
-            window,
-            "PtAssessment_Frequence_respiratoire_par_min.mesuree") |>
-            n -> ICUDYNUtil.computeStatisticsFromVector(n)
-
-    print("respiratoryRate : ",respiratoryRate)
+        window,
+        "PtAssessment_Frequence_respiratoire_par_min.mesuree") |>
+        n -> ICUDYNUtil.computeStatisticsFromVector(n)
 
     # FiO2
     FiO2 = missing
@@ -30,8 +28,10 @@ function ETL.Ventilation.compute_respiratoryRate_FiO2_SPO2_WSO2trunc(window::Dat
         EWSO2trunc = respiratoryRate[:mean]/(SPO2/FiO2) |> n -> round(mean(n), digits = 2)
     end
 
+
+
     return RefiningFunctionResult(
-        :respiratoryRate => respiratoryRate[:mean],
+        :respiratoryRate => respiratoryRate,
         :FiO2 => FiO2,
         :SPO2 => SPO2,
         :EWSO2trunc => EWSO2trunc

@@ -1,3 +1,5 @@
+include("../../../runtests-prerequisite.jl")
+
 @testset "Test Ventilation.computeUnplugAttemptInvasiveVentilation" begin
 
     df = DataFrame(
@@ -7,7 +9,7 @@
             "Epreuve",
             "tata",
             "titi",
-            "Fin VS/tube",
+            "Debut VS/tube",
             10,
             "20"],
         attributeDictionaryPropName = [

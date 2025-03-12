@@ -1,7 +1,13 @@
 """
-Allowed types for refining values 
+Allowed types for refining values
 """
-RefiningFunctionAllowedValueType = Union{String,Number,Missing,DateTime}
+RefiningFunctionAllowedValueType = Union{
+    String,
+    Number,
+    Missing,
+    DateTime,
+    Dict{Symbol,<:RefiningFunctionAllowedValueType}
+}
 
 IRefiningFunctionResult = Dict{Symbol,<:RefiningFunctionAllowedValueType}
 RefiningFunctionResult = Dict{Symbol,RefiningFunctionAllowedValueType}

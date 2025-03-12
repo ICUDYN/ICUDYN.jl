@@ -793,14 +793,22 @@ function ICUDYNUtil.mergeResultsDictionaries!(
     ;keyPrefix::String = ""
 )
 
+
     for (k,v) in dict2
         k = Symbol("$keyPrefix$k")
         if haskey(dict1,k)
             error("Result of module refining already has key[$k]")
         end
-        dict1[k] = v
+
+        if isa(v, RefiningFunctionResult)
+            ICUDYNUtil.mergeResultsDictionaries!(dict1,v;keyPrefix=String(k)*"_")
+        else
+            dict1[k] = v
+        end
     end
 end
+
+
 
 
 function ICUDYNUtil.checkIfDataframesAreEqual(_new::DataFrame, _control::DataFrame)
@@ -850,4 +858,3 @@ end
 function ICUDYNUtil.getModuleRootPath()
     return joinpath(dirname(pathof(ICUDYN)),"..") |> normpath
 end
-

@@ -27,11 +27,17 @@ module Toto
     end
 end
 
+module Enums
+    include("Model-protected/enums.jl")
+end
+
 module ICUDYNUtil
 
    using ConfParser,PostgresORM,
           LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Base.StackTraces,
           Dates, TimeZones, InfoZIP
+
+    using ..Enums,..Enums.Stats
 
     export openDBConn, openDBConnAndBeginTransaction,commitDBTransaction,
              closeDBConn, rollbackDBTransaction,
