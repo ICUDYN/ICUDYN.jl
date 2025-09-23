@@ -123,11 +123,19 @@ end
         )
     result = ETL.Physiological.computeHeartRateVars(df)
 
+    # @test result == Dict(
+    #     :heartRateMax => 91.72,
+    #     :heartRateMedian => 75.0,
+    #     :heartRateMin => 65.0,
+    #     :heartRateMean => 76.74,
+    # )
+
     @test result == Dict(
-        :heartRateMax => 91.72,
-        :heartRateMedian => 75.0,
-        :heartRateMin => 65.0,
-        :heartRateMean => 76.74,
+        :max => 91.72,
+        :median => 75.0,
+        :min => 65.0,
+        :mean => 76.74,
+        :stddev => 10.47
     )
 
 

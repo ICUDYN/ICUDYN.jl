@@ -148,7 +148,7 @@ end
 
     df = ICUDYNUtil.createSrcDBConnAndExecute() do dbconn
         ETL.getPatientRawDFFromSrcDB(
-            [12695,13022],
+            [20978],
             true, # use cache?
             dbconn
             )

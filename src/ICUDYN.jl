@@ -28,6 +28,7 @@ module Toto
 end
 
 module Enums
+    export Stats
     include("Model-protected/enums.jl")
 end
 
@@ -35,31 +36,32 @@ module ICUDYNUtil
 
    using ConfParser,PostgresORM,
           LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Base.StackTraces,
-          Dates, TimeZones, InfoZIP
+          Dates, TimeZones#, InfoZIP
 
-    using ..Enums,..Enums.Stats
+   using ..Enums,..Enums.Stats
 
-    export openDBConn, openDBConnAndBeginTransaction,commitDBTransaction,
-             closeDBConn, rollbackDBTransaction,
-             formatExceptionAndStackTrace, formatExceptionAndStackTraceCore,
-             getConf, getFrontendURL, getETLMaxSizeBeforeDBCommit,
-             getETLTnterruptionFilepath, hasRole,
-             getTimeZone, diffInSecondsAsInt,
-             getTranslation, json2Entity, getLogDir,
-             getDataDir, getICUDYNTempDir, getETLAIntegrerDir, getETLDejaIntegreDir,
-             initialize_http_response_status_code,
-             convertStringToZonedDateTime, convertStringToDate,
-             convertStringOfTimeToSeconds, nowInCurrentTimeZone,
-             unzipFileInTempDir, readdirWithFullpath, extension,
-             addTimeToZonedDateTime, addTimeToDate, getDateOfZonedDateTime,
-             getFilePathAnalyseRefactionsSerialisee,
-             getFilePathAnalyseLignesSerialisee,
-             getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
-             getNumericValueFromWindowTerseForm, rmAccentsAndLowercaseAndStrip,
-             getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict,
-             firstNonMissingValue, sameWindowValue, closestNonMissingValue,
-             closestNonMissingValueInCurrentOrPreviousWindows,
-             closestNonMissingValueInCurrentOrNextWindows
+   export openDBConn, openDBConnAndBeginTransaction,commitDBTransaction,
+            closeDBConn, rollbackDBTransaction,
+            formatExceptionAndStackTrace, formatExceptionAndStackTraceCore,
+            getConf, getFrontendURL, getETLMaxSizeBeforeDBCommit,
+            getETLTnterruptionFilepath, hasRole,
+            getTimeZone, diffInSecondsAsInt,
+            getTranslation, json2Entity, getLogDir,
+            getDataDir, getICUDYNTempDir, getETLAIntegrerDir, getETLDejaIntegreDir,
+            initialize_http_response_status_code,
+            convertStringToZonedDateTime, convertStringToDate,
+            convertStringOfTimeToSeconds, nowInCurrentTimeZone,
+            unzipFileInTempDir, readdirWithFullpath, extension,
+            addTimeToZonedDateTime, addTimeToDate, getDateOfZonedDateTime,
+            getFilePathAnalyseRefactionsSerialisee,
+            getFilePathAnalyseLignesSerialisee,
+            getFilePathAnalyseLignesPourJourneeExploitation, isMissing,
+            getNumericValueFromWindowTerseForm, rmAccentsAndLowercaseAndStrip,
+            getNonMissingValues,convertToFloatIfPossible, checkIfContainsNonStrict,
+            firstNonMissingValue, sameWindowValue, closestNonMissingValue,
+            closestNonMissingValueInCurrentOrPreviousWindows,
+            closestNonMissingValueInCurrentOrNextWindows,
+            Stats, STATS
 
      include("./util/utils-def.jl")
 

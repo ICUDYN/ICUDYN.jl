@@ -27,10 +27,10 @@ function ICUDYNUtil.openSrcDBConn()
         dsnKey = getConf("database-icca","host")*getConf("database-icca","database")*getConf("database-icca","port")
         #dsnKey = "ICCA"
         if !haskey(ODBC.dsns(),dsnKey)
-            ODBC.adddriver("MS SQL Driver", getConf("database-icca","driver_path"))
+            ODBC.adddriver("Microsoft ODBC Driver 18 for SQL Server", getConf("database-icca","driver_path"))
             ODBC.adddsn(
                 dsnKey,
-                "MS SQL Driver"
+                "Microsoft ODBC Driver 18 for SQL Server"
                 ;SERVER = host = getConf("database-icca","host"),
                 DATABASE = host = getConf("database-icca","database"),
                 PORT = host = getConf("database-icca","port"),
@@ -38,6 +38,7 @@ function ICUDYNUtil.openSrcDBConn()
             )
         end
 
+        ODBC.drivers()
         dbconn = ODBC.Connection(
             dsnKey
             ;user = getConf("database-icca","user"),
@@ -52,7 +53,7 @@ function ICUDYNUtil.openSrcDBConn()
             getConf("database-icca","host"),
             getConf("database-icca","user"),
             getConf("database-icca","password");
-            port=getConf("database-icca","port"))
+            port=1433) #getConf("database-icca","port"))
     end
 
 end

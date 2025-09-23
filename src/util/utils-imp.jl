@@ -352,16 +352,16 @@ end
 """
 Create a zip file from a vector of file paths
 """
-function ICUDYNUtil.createZip(filesPaths::Vector{String})::Vector{UInt8}
-    return InfoZIP.create_zip(filesPaths)
-end
+#function ICUDYNUtil.createZip(filesPaths::Vector{String})::Vector{UInt8}
+#    return InfoZIP.create_zip(filesPaths)
+#end
 
 # Returns the path of the temp directory containing the unziped files
-function ICUDYNUtil.unzipFileInTempDir(zipFilePath)
-    tempDir = mktempdir(ICUDYNUtil.getICUDYNTempDir())
-    InfoZIP.unzip(zipFilePath, tempDir)
-    tempDir
-end
+#function ICUDYNUtil.unzipFileInTempDir(zipFilePath)
+#    tempDir = mktempdir(ICUDYNUtil.getICUDYNTempDir())
+#    InfoZIP.unzip(zipFilePath, tempDir)
+#    tempDir
+#end
 
 function ICUDYNUtil.readdirWithFullpath(dir)
     joinpath.(abspath(dir), readdir(dir))
@@ -731,6 +731,16 @@ function ICUDYNUtil.exportToExcel(
                             anchor_cell=XLSX.CellRef("A1"))
        end
     end
+    return filepath
+end
+
+function ICUDYNUtil.exportToParquet(
+    dfs::Vector{Union{Missing,DataFrame}},
+    ;filepath = "$(tempname()).xlsx"
+    )
+
+    #Parquet2.writefile(filepath, df)
+    
     return filepath
 end
 

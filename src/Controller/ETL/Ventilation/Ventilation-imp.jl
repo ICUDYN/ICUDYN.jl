@@ -1,4 +1,5 @@
-include("compute_respiratoryRate_FiO2_SPO2_WSO2trunc.jl")
+include("computeRespiratoryRate.jl")
+include("compute_FiO2_SPO2_WSO2trunc.jl")
 include("computePao2OverFio2.jl")
 include("computePositiveExpiratoryPressure.jl")
 include("computeRespiratoryVolumeMinute.jl")

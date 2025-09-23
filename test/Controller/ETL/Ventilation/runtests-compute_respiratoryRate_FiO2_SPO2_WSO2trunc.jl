@@ -1,6 +1,6 @@
 include("../../../runtests-prerequisite.jl")
 
-@testset "Test ETL.compute_respiratoryRate_FiO2_SPO2_WSO2trunc" begin
+@testset "Test ETL.compute_FiO2_SPO2_WSO2trunc" begin
 
     df = DataFrame(
         terseForm = [
@@ -22,14 +22,14 @@ include("../../../runtests-prerequisite.jl")
             "PtAssessment_SpO2Int.SpO2msmt",
             "PtAssessment_SpO2Int.SpO2msmt",]
         )
-    result = ETL.Ventilation.compute_respiratoryRate_FiO2_SPO2_WSO2trunc(df)
+    result = ETL.Ventilation.compute_FiO2_SPO2_WSO2trunc(df)
 
     dictStat=Dict(
         :min=>10.0,
         :max=>20.0,
         :mean=>14.0,
         :median=>12.0,
-        :stdev=>5.29
+        :stddev=>5.29
     )
 
     targetDict = Dict(

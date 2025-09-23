@@ -6,7 +6,6 @@ RefiningFunctionAllowedValueType = Union{
     Number,
     Missing,
     DateTime,
-    Dict{Symbol,<:RefiningFunctionAllowedValueType}
 }
 
 IRefiningFunctionResult = Dict{Symbol,<:RefiningFunctionAllowedValueType}

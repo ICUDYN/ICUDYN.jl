@@ -4,8 +4,8 @@
 
 include("../scripts/using.jl")
 
-firstname = "Yves"
-lastname = "Le Bozec"
+firstname = "John"
+lastname = "Doe"
 birthdate = Date("1947-02-05")
 
 patientPrettyCodename = ICUDYNUtil.getPatientPrettyCodename(

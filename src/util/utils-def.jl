@@ -70,6 +70,8 @@ function prepareDataFrameForExcel! end
 
 function exportToExcel end
 
+function exportToParquet end
+
 function formatDate end
 
 function formatDateTime end
@@ -94,8 +96,11 @@ function convertStringToDateTime end
 # eg. "1970-01-01T12:35:00+01:00"
 function convertStringToZonedDateTime end
 
+
+#function createZip end
+
 # Returns the path of the temp directory containing the unziped files
-function unzipFileInTempDir end
+#function unzipFileInTempDir end
 
 function readdirWithFullpath end
 
@@ -145,8 +150,6 @@ function getTablePartitionName end
 function vacuumAndReindexTablesPartitionnees end
 
 function getCurrentFrontendVersion end
-
-function createZip end
 
 function overwriteConfForPrecompilation end
 function restoreConfAfterPrecompilation end

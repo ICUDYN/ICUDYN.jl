@@ -1,5 +1,5 @@
 include("runtests-computePao2OverFio2.jl")
 include("runtests-computePositiveExpiratoryPressure.jl")
-include("runtests-compute_respiratoryRate_FiO2_SPO2_WSO2trunc.jl")
+include("runtests-compute_FiO2_SPO2_WSO2trunc.jl")
 include("runtests-computeUnplugAttemptInvasiveVentilation.jl")
 include("runtests-computeVentilationTypeAndDebitO2.jl")

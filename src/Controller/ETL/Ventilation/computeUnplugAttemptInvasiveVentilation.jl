@@ -33,7 +33,7 @@ function ETL.Ventilation.computeUnplugAttemptInvasiveVentilation(window::DataFra
     unplugAttemptInvasiveVentilation =
         unplugAttemptInvasiveVentilationFromVentMode ||
         unplugAttemptInvasiveVentilationFromSeances ||
-        unplugAttemptInvasiveVentilationDuration
+        !ismissing(unplugAttemptInvasiveVentilationDuration)
 
     return RefiningFunctionResult(
         :unplugAttemptInvasiveVentilation => unplugAttemptInvasiveVentilation,

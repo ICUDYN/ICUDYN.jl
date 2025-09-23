@@ -164,38 +164,43 @@ function ICUDYNUtil.closestNonMissingValueInCurrentOrNextWindows(
 end
 
 
-function ICUDYNUtil.computeStatisticsFromVector(x::Union{Missing,AbstractArray}, vStats::Vector{STATS}; _digits::Int64=2)
+function ICUDYNUtil.computeStatisticsFromVector(x::Union{Missing,AbstractArray}, varName::String, vStats::Vector{STATS}; _digits::Int64=2)
 
-    d = RefiningFunctionResult()
+    if !ismissing(x)
+        if !isempty(x)
+            d = RefiningFunctionResult()
 
-    if !(ismissing(x) || isempty(x))
-        x=convert(Vector{Float64}, x)
+            x=convert(Vector{Float64}, x)
 
-        if isempty(vStats)
-            error("Please provide a non-empty Vector{STATS}")
+            if isempty(vStats)
+                error("Please provide a non-empty Vector{STATS}")
+            end
+
+            if Stats.min ∈ vStats || Stats.all ∈ vStats
+                d[Symbol(varName*"_min")] = minimum(x)
+            end
+
+            if Stats.max ∈ vStats || Stats.all ∈ vStats
+                d[Symbol(varName*"_max")] = maximum(x)
+            end
+
+            if Stats.mean ∈ vStats || Stats.all ∈ vStats
+                d[Symbol(varName*"_mean")] = round(mean(x); digits=_digits)
+            end
+
+            if Stats.median ∈ vStats || Stats.all ∈ vStats
+                d[Symbol(varName*"_median")] = median(x)
+            end
+
+            if Stats.stddev ∈ vStats || Stats.all ∈ vStats
+                d[Symbol(varName*"_stddev")] = round(std(x); digits=_digits)
+            end
+
+            return d
+        else
+            return missing
         end
-
-        if Stats.min ∈ vStats || Stats.all ∈ vStats
-            d[:min] = minimum(x)
-        end
-
-        if Stats.max ∈ vStats || Stats.all ∈ vStats
-            d[:max] = maximum(x)
-        end
-
-        if Stats.mean ∈ vStats || Stats.all ∈ vStats
-            d[:mean] = round(mean(x); digits=_digits)
-        end
-
-        if Stats.median ∈ vStats || Stats.all ∈ vStats
-            d[:median] = median(x)
-        end
-
-        if Stats.stdev ∈ vStats || Stats.all ∈ vStats
-            d[:stdev] = round(std(x); digits=_digits)
-        end
+    else
+        return missing
     end
-
-    return d
-
 end

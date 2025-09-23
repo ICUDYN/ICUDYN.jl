@@ -82,10 +82,9 @@ function ETL.Physiological.computeHeartRateVars(window::DataFrame)
     heartRate = ICUDYNUtil.getNumericValueFromWindowTerseForm(
         window,
         "PtAssessment_heartRateInt.heartRate") |>
-        n -> ICUDYNUtil.computeStatisticsFromVector(n)
-
-    return RefiningFunctionResult(:heartRate => heartRate)
-
+        n -> ICUDYNUtil.computeStatisticsFromVector(n, "heartRate", [ICUDYNUtil.Stats.all])
+    
+    return heartRate
 end
 
 

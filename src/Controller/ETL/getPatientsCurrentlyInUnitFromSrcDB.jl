@@ -17,6 +17,10 @@ function ETL.getPatientsCurrentlyInUnitFromSrcDB(dbconn::Union{ODBC.Connection,M
 
     patientsNamesDF = DBInterface.execute(dbconn, queryString) |> DataFrame
 
+    #@info "inTime : " maximum(patientsNamesDF.inTime)
+    #sort!(patientsNamesDF, :inTime, rev=true)
+    #@info "patientID : " patientsNamesDF[1,[:encounterId, :inTime]]
+
     result = PatientInSrcDB[]
     for r in eachrow(patientsNamesDF)
         patientIDs = ETL.getPatientIDsFromSrcDB(
