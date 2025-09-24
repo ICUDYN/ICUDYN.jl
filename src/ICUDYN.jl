@@ -35,7 +35,7 @@ end
 module ICUDYNUtil
 
    using ConfParser,PostgresORM,
-          LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Base.StackTraces,
+          LibPQ, Query, JSON, ConfParser, UUIDs, XLSX, Parquet2, Base.StackTraces,
           Dates, TimeZones#, InfoZIP
 
    using ..Enums,..Enums.Stats

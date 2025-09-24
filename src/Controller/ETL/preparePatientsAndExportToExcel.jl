@@ -59,4 +59,9 @@ function ETL.preparePatientsAndExportToExcel(
         ;filepath = filepath
     )
 
+    ICUDYNUtil.exportToParquet(
+        patientsPreparedData,
+        patientsCodeNames
+    )
+
 end

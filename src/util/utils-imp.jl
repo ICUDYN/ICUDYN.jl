@@ -736,10 +736,27 @@ end
 
 function ICUDYNUtil.exportToParquet(
     dfs::Vector{Union{Missing,DataFrame}},
-    ;filepath = "$(tempname()).xlsx"
+    sheetsNames::Vector{String},
+    ;filepath = "$(tempname()).parquet"
     )
 
-    #Parquet2.writefile(filepath, df)
+    combined_dfs = DataFrame[]
+
+    for (i, df) in enumerate(dfs)
+        if df === missing
+            @warn "DataFrame at index $i is missing, skipping..."
+            continue
+        end
+        # Add a new column with the sheet name for identification
+        df_copy = copy(df)
+        df_copy[!, :sheet_name] = fill(sheetsNames[i], nrow(df_copy))
+        push!(combined_dfs, df_copy)
+    end
+
+    # Vertically concatenate all dataframes
+    combined_df = vcat(combined_dfs...)
+
+    Parquet2.writefile(filepath, combined_df)
     
     return filepath
 end

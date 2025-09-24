@@ -13,6 +13,6 @@ using Pkg
 using DataStructures
 # No choice...calling 'using' with in the module block does not work
 using Dates, Base.StackTraces, TimeZones,Serialization,
-      DataFrames, XLSX, Decimals, ConfParser, LoggingExtras
+      DataFrames, XLSX, Parquet2, Decimals, ConfParser, LoggingExtras
 using Statistics, Distributed, CSV, Query, Unicode#, InfoZIP
 using PostgresORM, LibPQ, ODBC, MySQL
